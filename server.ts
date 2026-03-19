@@ -1,6 +1,7 @@
 import { readdir, readFile, stat } from "fs/promises";
 import { join } from "path";
 import { homedir } from "os";
+import { spawn } from "child_process";
 
 const TASKS_DIR = join(homedir(), "Tasks");
 const PORT = 4000;
@@ -18,7 +19,7 @@ interface TaskInfo {
   figmaUrl?: string;
   figmaScreenshot?: string;
   completedAt?: string;
-  agentLogTail?: string[];
+  agentLog?: string;
   devServerStatus?: number | null;
 }
 
@@ -57,7 +58,6 @@ async function getTaskInfo(taskName: string): Promise<TaskInfo> {
   const taskDir = join(TASKS_DIR, taskName);
   const info: TaskInfo = { task: taskName };
 
-  // Read task.json
   const taskJsonStr = await readFileSafe(join(taskDir, "task.json"));
   if (taskJsonStr) {
     try {
@@ -66,7 +66,6 @@ async function getTaskInfo(taskName: string): Promise<TaskInfo> {
     } catch {}
   }
 
-  // Fallback summary from STATUS.md
   if (!info.summary) {
     const statusMd = await readFileSafe(join(taskDir, "STATUS.md"));
     if (statusMd) {
@@ -75,22 +74,22 @@ async function getTaskInfo(taskName: string): Promise<TaskInfo> {
     }
   }
 
-  // Read full agent.log
-  const agentLog = await readFileSafe(join(taskDir, "agent.log"));
-  if (agentLog) {
-    const lines = agentLog.trim().split("\n");
-    info.agentLogTail = lines;
+  const agentLogContent = await readFileSafe(join(taskDir, "agent.log"));
+  if (agentLogContent) {
+    info.agentLog = agentLogContent.trim();
   }
 
-  // Check for screenshot
   if (await fileExists(join(taskDir, "screenshot.png"))) {
     info.screenshot = "screenshot.png";
   }
 
-  // Detect figmaUrl from agent.log or STATUS.md if not in task.json
   if (!info.figmaUrl) {
     const figmaRegex = /https:\/\/www\.figma\.com\/[^\s)>"']*/;
-    const sources = [agentLog, await readFileSafe(join(taskDir, "STATUS.md"))];
+    const sources = [
+      agentLogContent,
+      taskJsonStr,
+      await readFileSafe(join(taskDir, "STATUS.md")),
+    ];
     for (const src of sources) {
       if (src) {
         const match = src.match(figmaRegex);
@@ -102,12 +101,10 @@ async function getTaskInfo(taskName: string): Promise<TaskInfo> {
     }
   }
 
-  // Check for figma screenshot
   if (await fileExists(join(taskDir, "figma-screenshot.png"))) {
     info.figmaScreenshot = "figma-screenshot.png";
   }
 
-  // Ping devPort
   if (info.devPort) {
     info.devServerStatus = await pingPort(info.devPort);
   }
@@ -147,6 +144,103 @@ async function serveFigmaScreenshot(taskName: string): Promise<Response> {
   return new Response("Not found", { status: 404 });
 }
 
+function runCommand(cmd: string, args: string[]): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const proc = spawn(cmd, args);
+    let stdout = "";
+    let stderr = "";
+    proc.stdout.on("data", (d: Buffer) => (stdout += d.toString()));
+    proc.stderr.on("data", (d: Buffer) => (stderr += d.toString()));
+    proc.on("close", (code) => {
+      if (code === 0) resolve(stdout);
+      else reject(new Error(stderr || `exit code ${code}`));
+    });
+  });
+}
+
+async function getTmuxSessions(): Promise<string[]> {
+  try {
+    const out = await runCommand("tmux", ["ls", "-F", "#{session_name}"]);
+    return out.trim().split("\n").filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+async function tmuxSessionExists(session: string): Promise<boolean> {
+  try {
+    await runCommand("tmux", ["has-session", "-t", session]);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function streamTmuxSession(session: string): Response {
+  let intervalId: ReturnType<typeof setInterval>;
+  let closed = false;
+
+  const stream = new ReadableStream({
+    start(controller) {
+      const encoder = new TextEncoder();
+
+      const send = (data: string) => {
+        if (closed) return;
+        try {
+          controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+        } catch {
+          cleanup();
+        }
+      };
+
+      const capture = async () => {
+        try {
+          const exists = await tmuxSessionExists(session);
+          if (!exists) {
+            send(JSON.stringify({ done: true }));
+            cleanup();
+            return;
+          }
+          const output = await runCommand("tmux", [
+            "capture-pane",
+            "-t",
+            session,
+            "-p",
+          ]);
+          send(JSON.stringify({ output }));
+        } catch {
+          send(JSON.stringify({ done: true }));
+          cleanup();
+        }
+      };
+
+      const cleanup = () => {
+        if (closed) return;
+        closed = true;
+        clearInterval(intervalId);
+        try {
+          controller.close();
+        } catch {}
+      };
+
+      capture();
+      intervalId = setInterval(capture, 1000);
+    },
+    cancel() {
+      closed = true;
+      clearInterval(intervalId);
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    },
+  });
+}
+
 async function serveHTML(): Promise<Response> {
   const htmlPath = join(import.meta.dir, "index.html");
   const html = await readFile(htmlPath, "utf-8");
@@ -165,13 +259,42 @@ const server = Bun.serve({
       return Response.json(tasks);
     }
 
+    if (url.pathname === "/api/tmux-sessions") {
+      const sessions = await getTmuxSessions();
+      return Response.json(sessions);
+    }
+
+    if (url.pathname.startsWith("/api/tmux/")) {
+      const session = decodeURIComponent(
+        url.pathname.replace("/api/tmux/", "")
+      );
+      if (!session) return new Response("Missing session", { status: 400 });
+      const exists = await tmuxSessionExists(session);
+      if (!exists) {
+        return new Response(
+          `data: ${JSON.stringify({ done: true })}\n\n`,
+          {
+            headers: {
+              "Content-Type": "text/event-stream",
+              "Cache-Control": "no-cache",
+            },
+          }
+        );
+      }
+      return streamTmuxSession(session);
+    }
+
     if (url.pathname.startsWith("/screenshots/")) {
-      const taskName = url.pathname.replace("/screenshots/", "");
+      const taskName = decodeURIComponent(
+        url.pathname.replace("/screenshots/", "")
+      );
       return serveScreenshot(taskName);
     }
 
     if (url.pathname.startsWith("/figma-screenshots/")) {
-      const taskName = url.pathname.replace("/figma-screenshots/", "");
+      const taskName = decodeURIComponent(
+        url.pathname.replace("/figma-screenshots/", "")
+      );
       return serveFigmaScreenshot(taskName);
     }
 

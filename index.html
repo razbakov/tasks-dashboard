@@ -9,34 +9,38 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
-      background: #111113;
-      color: #e0e0e0;
+      background: #fafafa;
+      color: #1a1a1a;
       min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
     }
 
     header {
-      padding: 32px 40px 24px;
+      padding: 32px 48px 24px;
       display: flex;
       align-items: baseline;
       justify-content: space-between;
-      border-bottom: 1px solid #1e1e21;
+      border-bottom: 1px solid #e5e5e5;
+      background: #fff;
     }
 
     header h1 {
       font-size: 18px;
-      font-weight: 500;
-      color: #f0f0f0;
+      font-weight: 600;
+      color: #c92128;
       letter-spacing: -0.3px;
     }
 
     .refresh-info {
       font-size: 12px;
-      color: #555;
+      color: #999;
       font-weight: 400;
     }
 
     .dashboard {
-      padding: 24px 40px 60px;
+      padding: 32px 48px 60px;
+      max-width: 1600px;
+      margin: 0 auto;
     }
 
     .project-group {
@@ -44,119 +48,50 @@
     }
 
     .project-header {
-      font-size: 13px;
-      font-weight: 600;
-      color: #888;
+      font-size: 12px;
+      font-weight: 700;
+      color: #c92128;
       text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 16px;
+      letter-spacing: 1.5px;
+      margin-bottom: 12px;
       padding-bottom: 8px;
-      border-bottom: 1px solid #1e1e21;
+      border-bottom: 2px solid #f0f0f0;
     }
 
-    .project-row {
+    .task-list {
       display: flex;
-      gap: 16px;
-      overflow-x: auto;
-      padding-bottom: 8px;
-      scrollbar-width: thin;
-      scrollbar-color: #2a2a2e #111113;
-    }
-
-    .project-row::-webkit-scrollbar {
-      height: 6px;
-    }
-
-    .project-row::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .project-row::-webkit-scrollbar-thumb {
-      background: #2a2a2e;
-      border-radius: 3px;
+      flex-direction: column;
+      gap: 12px;
     }
 
     .card {
-      background: #18181b;
-      border: 1px solid #27272a;
+      background: #fff;
+      border: 1px solid #e8e8e8;
       border-radius: 10px;
-      padding: 20px;
-      min-width: 380px;
-      max-width: 420px;
-      flex-shrink: 0;
-      transition: border-color 0.15s ease;
       display: flex;
-      flex-direction: column;
-      gap: 12px;
+      flex-direction: row;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      overflow: hidden;
     }
 
     .card:hover {
-      border-color: #3f3f46;
+      border-color: #d0d0d0;
+      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
     }
 
-    .card-top {
+    /* Left column: screenshots */
+    .card-left {
+      width: 280px;
+      min-width: 280px;
+      padding: 16px;
       display: flex;
       flex-direction: column;
-      gap: 2px;
-    }
-
-    .task-name {
-      font-size: 13px;
-      font-weight: 500;
-      color: #a1a1aa;
-    }
-
-    .branch {
-      font-size: 11px;
-      color: #52525b;
-      font-family: 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, monospace;
-    }
-
-    .meta-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .badge {
-      font-size: 11px;
-      padding: 3px 10px;
-      border-radius: 100px;
-      font-weight: 500;
-      white-space: nowrap;
-      letter-spacing: 0.2px;
-    }
-
-    .badge-done { background: #052e16; color: #4ade80; }
-    .badge-running { background: #422006; color: #fbbf24; }
-    .badge-failed { background: #450a0a; color: #f87171; }
-    .badge-pending { background: #1e1b4b; color: #a5b4fc; }
-    .badge-server-up { background: #052e16; color: #4ade80; }
-    .badge-server-down { background: #450a0a; color: #f87171; }
-    .badge-server-off { background: #1c1c1e; color: #3f3f46; }
-
-    .url-link {
-      color: #a78bfa;
-      text-decoration: none;
-      font-size: 12px;
-      font-family: 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, monospace;
-      transition: color 0.15s;
-    }
-
-    .url-link:hover {
-      color: #c4b5fd;
-      text-decoration: underline;
-    }
-
-    .screenshots-row {
-      display: flex;
-      gap: 12px;
+      gap: 10px;
+      border-right: 1px solid #f0f0f0;
+      background: #fcfcfc;
     }
 
     .screenshot-container {
-      flex: 1;
-      min-width: 0;
       display: flex;
       flex-direction: column;
       gap: 4px;
@@ -173,25 +108,25 @@
     }
 
     .screenshot-label-app {
-      background: #1e1b4b;
-      color: #a5b4fc;
+      background: #eef2ff;
+      color: #4f46e5;
     }
 
     .screenshot-label-figma {
-      background: #3b1249;
-      color: #e879f9;
+      background: #fdf2f8;
+      color: #db2777;
     }
 
     .screenshot-thumb {
       cursor: pointer;
-      border-radius: 8px;
+      border-radius: 6px;
       overflow: hidden;
-      border: 1px solid #27272a;
+      border: 1px solid #e8e8e8;
       transition: border-color 0.15s;
     }
 
     .screenshot-thumb:hover {
-      border-color: #3f3f46;
+      border-color: #c0c0c0;
     }
 
     .screenshot-thumb img {
@@ -199,17 +134,91 @@
       display: block;
     }
 
-    .summary {
+    .no-screenshots {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      color: #ccc;
+      font-size: 12px;
+    }
+
+    /* Middle column: content */
+    .card-middle {
+      flex: 1;
+      min-width: 0;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .card-title-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .task-name {
       font-size: 14px;
       font-weight: 600;
-      color: #f4f4f5;
+      color: #1a1a1a;
+    }
+
+    .branch {
+      font-size: 11px;
+      color: #999;
+      font-family: 'SF Mono', 'Fira Code', Menlo, monospace;
+    }
+
+    .meta-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-size: 11px;
+      padding: 2px 10px;
+      border-radius: 100px;
+      font-weight: 500;
+      white-space: nowrap;
+      letter-spacing: 0.2px;
+    }
+
+    .badge-done { background: #ecfdf5; color: #059669; }
+    .badge-running { background: #fffbeb; color: #d97706; }
+    .badge-failed { background: #fef2f2; color: #dc2626; }
+    .badge-pending { background: #f0f0ff; color: #6366f1; }
+    .badge-server-up { background: #ecfdf5; color: #059669; }
+    .badge-server-down { background: #fef2f2; color: #dc2626; }
+    .badge-server-off { background: #f5f5f5; color: #999; }
+
+    .url-link {
+      color: #c92128;
+      text-decoration: none;
+      font-size: 12px;
+      font-family: 'SF Mono', 'Fira Code', Menlo, monospace;
+      transition: color 0.15s;
+    }
+
+    .url-link:hover {
+      color: #a01b21;
+      text-decoration: underline;
+    }
+
+    .summary {
+      font-size: 15px;
+      font-weight: 600;
+      color: #1a1a1a;
       line-height: 1.5;
       white-space: pre-line;
     }
 
     .original-task {
       font-size: 13px;
-      color: #71717a;
+      color: #777;
       line-height: 1.6;
       white-space: pre-wrap;
     }
@@ -217,9 +226,10 @@
     .section-label {
       font-size: 11px;
       text-transform: uppercase;
-      color: #52525b;
+      color: #999;
       letter-spacing: 0.5px;
-      font-weight: 500;
+      font-weight: 600;
+      margin-top: 4px;
     }
 
     .checklist {
@@ -228,11 +238,11 @@
       font-size: 13px;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 3px;
     }
 
     .checklist li {
-      color: #a1a1aa;
+      color: #555;
       padding-left: 14px;
       position: relative;
       line-height: 1.5;
@@ -246,48 +256,102 @@
       width: 5px;
       height: 5px;
       border-radius: 50%;
-      background: #52525b;
+      background: #ccc;
+    }
+
+    /* Right column: log + tmux */
+    .card-right {
+      width: 340px;
+      min-width: 340px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      border-left: 1px solid #f0f0f0;
+      background: #fcfcfc;
     }
 
     .agent-log {
-      background: #0c0c0e;
-      border: 1px solid #1e1e21;
-      border-radius: 8px;
-      padding: 12px;
-      font-family: 'SF Mono', 'Fira Code', 'Fira Mono', Menlo, monospace;
+      background: #f5f5f5;
+      border: 1px solid #e8e8e8;
+      border-radius: 6px;
+      padding: 10px 12px;
+      font-family: 'SF Mono', 'Fira Code', Menlo, monospace;
       font-size: 11px;
-      color: #71717a;
-      line-height: 1.7;
-      max-height: 200px;
+      color: #555;
+      line-height: 1.6;
+      max-height: 300px;
       overflow-y: auto;
       white-space: pre;
-      scrollbar-width: thin;
-      scrollbar-color: #27272a #0c0c0e;
+      flex: 1;
     }
 
-    .agent-log::-webkit-scrollbar {
-      width: 5px;
+    .agent-log::-webkit-scrollbar { width: 5px; }
+    .agent-log::-webkit-scrollbar-track { background: transparent; }
+    .agent-log::-webkit-scrollbar-thumb { background: #ddd; border-radius: 3px; }
+
+    .tmux-section {
+      border: 1px solid #e8e8e8;
+      border-radius: 6px;
+      overflow: hidden;
     }
 
-    .agent-log::-webkit-scrollbar-track {
-      background: transparent;
+    .tmux-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      background: #f9f9f9;
+      border-bottom: 1px solid #e8e8e8;
+      font-size: 11px;
+      color: #666;
+      font-weight: 500;
     }
 
-    .agent-log::-webkit-scrollbar-thumb {
-      background: #27272a;
-      border-radius: 3px;
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .tmux-output {
+      background: #f5f5f5;
+      padding: 8px 10px;
+      font-family: 'SF Mono', 'Fira Code', Menlo, monospace;
+      font-size: 11px;
+      color: #555;
+      line-height: 1.5;
+      max-height: 180px;
+      overflow-y: auto;
+      white-space: pre;
+    }
+
+    .tmux-ended {
+      padding: 6px 10px;
+      font-size: 11px;
+      color: #999;
+      text-align: center;
+      background: #f9f9f9;
     }
 
     .timestamp {
       font-size: 11px;
-      color: #3f3f46;
+      color: #bbb;
     }
 
+    /* Overlay for screenshots */
     .overlay {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.85);
+      background: rgba(0, 0, 0, 0.6);
       backdrop-filter: blur(8px);
       z-index: 100;
       cursor: zoom-out;
@@ -301,20 +365,38 @@
       max-width: 92vw;
       max-height: 92vh;
       border-radius: 10px;
-      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.3);
     }
 
     .empty {
       text-align: center;
       padding: 80px 24px;
-      color: #3f3f46;
+      color: #bbb;
       font-size: 15px;
     }
 
-    @media (max-width: 480px) {
+    @media (max-width: 1200px) {
+      .card { flex-direction: column; }
+      .card-left {
+        width: 100%;
+        min-width: 0;
+        flex-direction: row;
+        border-right: none;
+        border-bottom: 1px solid #f0f0f0;
+      }
+      .card-left .screenshot-container { flex: 1; }
+      .card-right {
+        width: 100%;
+        min-width: 0;
+        border-left: none;
+        border-top: 1px solid #f0f0f0;
+      }
+      .agent-log { max-height: 200px; }
+    }
+
+    @media (max-width: 640px) {
       header { padding: 20px 16px 16px; }
       .dashboard { padding: 16px; }
-      .card { min-width: 320px; }
     }
   </style>
 </head>
@@ -329,6 +411,14 @@
   </div>
 
   <script>
+    const activeTmuxStreams = {};
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
     function statusBadge(status) {
       const s = (status || 'pending').toLowerCase();
       const labels = { done: 'Done', running: 'Running', failed: 'Failed', pending: 'Pending' };
@@ -344,86 +434,10 @@
       return `<span class="badge badge-server-down">Offline</span>`;
     }
 
-    function escapeHtml(str) {
-      const div = document.createElement('div');
-      div.textContent = str;
-      return div.innerHTML;
-    }
-
     function deriveProject(taskName) {
       const parts = taskName.split('-');
-      if (parts.length > 1) return parts[0];
-      return 'other';
-    }
-
-    function renderCard(t) {
-      let html = `<div class="card">`;
-
-      // 1. Task name + branch
-      html += `<div class="card-top">`;
-      html += `<div class="task-name">${escapeHtml(t.task)}</div>`;
-      if (t.branch) html += `<div class="branch">${escapeHtml(t.branch)}</div>`;
-      html += `</div>`;
-
-      // 2. Status + HTTP badge + URL
-      html += `<div class="meta-row">`;
-      html += statusBadge(t.status);
-      html += serverBadge(t.devPort, t.devServerStatus);
-      if (t.url) html += `<a class="url-link" href="${escapeHtml(t.url)}" target="_blank">${escapeHtml(t.url)}</a>`;
-      html += `</div>`;
-
-      // 3. Screenshots
-      if (t.screenshot || t.figmaScreenshot) {
-        html += `<div class="screenshots-row">`;
-        if (t.figmaScreenshot) {
-          html += `<div class="screenshot-container">`;
-          html += `<span class="screenshot-label screenshot-label-figma">Figma</span>`;
-          html += `<div class="screenshot-thumb" onclick="showScreenshot('/figma-screenshots/${encodeURIComponent(t.task)}')">`;
-          html += `<img src="/figma-screenshots/${encodeURIComponent(t.task)}" alt="Figma Screenshot" loading="lazy">`;
-          html += `</div></div>`;
-        }
-        if (t.screenshot) {
-          html += `<div class="screenshot-container">`;
-          if (t.figmaScreenshot) html += `<span class="screenshot-label screenshot-label-app">App</span>`;
-          html += `<div class="screenshot-thumb" onclick="showScreenshot('/screenshots/${encodeURIComponent(t.task)}')">`;
-          html += `<img src="/screenshots/${encodeURIComponent(t.task)}" alt="Screenshot" loading="lazy">`;
-          html += `</div></div>`;
-        }
-        html += `</div>`;
-      }
-
-      // 4. Summary
-      if (t.summary) {
-        html += `<div class="summary">${escapeHtml(t.summary)}</div>`;
-      }
-
-      // 5. Original task
-      if (t.originalTask) {
-        html += `<div class="original-task">${escapeHtml(t.originalTask)}</div>`;
-      }
-
-      // 6. How to test
-      if (t.howToTest && t.howToTest.length) {
-        html += `<div class="section-label">How to test</div>`;
-        html += `<ul class="checklist">`;
-        t.howToTest.forEach(item => { html += `<li>${escapeHtml(item)}</li>`; });
-        html += `</ul>`;
-      }
-
-      // 7. Agent log (full, scrollable)
-      if (t.agentLogTail && t.agentLogTail.length) {
-        html += `<div class="section-label">Agent log</div>`;
-        html += `<div class="agent-log">${t.agentLogTail.map(l => escapeHtml(l)).join('\n')}</div>`;
-      }
-
-      // 8. Timestamp
-      if (t.completedAt) {
-        const d = new Date(t.completedAt);
-        html += `<div class="timestamp">Completed ${d.toLocaleString()}</div>`;
-      }
-
-      html += `</div>`;
-      return html;
+      if (parts.length > 1) return parts[0].toUpperCase();
+      return 'OTHER';
     }
 
     function showScreenshot(src) {
@@ -433,14 +447,166 @@
       overlay.classList.add('active');
     }
 
+    function renderCard(t, tmuxSessions) {
+      const taskEnc = encodeURIComponent(t.task);
+      const hasScreenshot = !!t.screenshot;
+      const hasFigma = !!t.figmaScreenshot;
+      const hasAnyScreenshot = hasScreenshot || hasFigma;
+
+      // Determine tmux session
+      const wfSession = `wf-${t.task}`;
+      const devSession = `dev-${t.task}`;
+      const liveSession = tmuxSessions.includes(wfSession) ? wfSession
+        : tmuxSessions.includes(devSession) ? devSession
+        : null;
+
+      let html = `<div class="card">`;
+
+      // LEFT: screenshots
+      html += `<div class="card-left">`;
+      if (hasScreenshot) {
+        html += `<div class="screenshot-container">`;
+        if (hasFigma) html += `<span class="screenshot-label screenshot-label-app">App</span>`;
+        html += `<div class="screenshot-thumb" onclick="showScreenshot('/screenshots/${taskEnc}')">`;
+        html += `<img src="/screenshots/${taskEnc}" alt="Screenshot" loading="lazy">`;
+        html += `</div></div>`;
+      }
+      if (hasFigma) {
+        html += `<div class="screenshot-container">`;
+        html += `<span class="screenshot-label screenshot-label-figma">Figma</span>`;
+        html += `<div class="screenshot-thumb" onclick="showScreenshot('/figma-screenshots/${taskEnc}')">`;
+        html += `<img src="/figma-screenshots/${taskEnc}" alt="Figma" loading="lazy">`;
+        html += `</div></div>`;
+      }
+      if (!hasAnyScreenshot) {
+        html += `<div class="no-screenshots">No screenshots</div>`;
+      }
+      html += `</div>`;
+
+      // MIDDLE: content
+      html += `<div class="card-middle">`;
+
+      // Title + branch
+      html += `<div class="card-title-row">`;
+      html += `<span class="task-name">${escapeHtml(t.task)}</span>`;
+      if (t.branch) html += `<span class="branch">${escapeHtml(t.branch)}</span>`;
+      html += `</div>`;
+
+      // Status + HTTP + URL
+      html += `<div class="meta-row">`;
+      html += statusBadge(t.status);
+      html += serverBadge(t.devPort, t.devServerStatus);
+      if (t.url) html += `<a class="url-link" href="${escapeHtml(t.url)}" target="_blank">${escapeHtml(t.url)}</a>`;
+      html += `</div>`;
+
+      // Summary
+      if (t.summary) {
+        html += `<div class="summary">${escapeHtml(t.summary)}</div>`;
+      }
+
+      // Original task
+      if (t.originalTask) {
+        html += `<div class="original-task">${escapeHtml(t.originalTask)}</div>`;
+      }
+
+      // How to test
+      if (t.howToTest && t.howToTest.length) {
+        html += `<div class="section-label">How to test</div>`;
+        html += `<ul class="checklist">`;
+        t.howToTest.forEach(item => { html += `<li>${escapeHtml(item)}</li>`; });
+        html += `</ul>`;
+      }
+
+      html += `</div>`;
+
+      // RIGHT: log + tmux + timestamp
+      html += `<div class="card-right">`;
+
+      if (t.agentLog) {
+        html += `<div class="section-label">Agent Log</div>`;
+        html += `<div class="agent-log">${escapeHtml(t.agentLog)}</div>`;
+      }
+
+      if (liveSession) {
+        const tmuxId = `tmux-${t.task}`;
+        html += `<div class="tmux-section">`;
+        html += `<div class="tmux-header"><div class="live-dot"></div> Live &mdash; ${escapeHtml(liveSession)}</div>`;
+        html += `<div class="tmux-output" id="${tmuxId}">Connecting...</div>`;
+        html += `</div>`;
+      }
+
+      if (t.completedAt) {
+        const d = new Date(t.completedAt);
+        html += `<div class="timestamp">Completed ${d.toLocaleString()}</div>`;
+      }
+
+      html += `</div>`;
+      html += `</div>`;
+      return { html, liveSession, task: t.task };
+    }
+
+    function connectTmux(session, taskName) {
+      const elId = `tmux-${taskName}`;
+      const key = session;
+
+      // Don't reconnect if already connected
+      if (activeTmuxStreams[key]) return;
+
+      const es = new EventSource(`/api/tmux/${encodeURIComponent(session)}`);
+      activeTmuxStreams[key] = es;
+
+      es.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          const el = document.getElementById(elId);
+          if (!el) { es.close(); delete activeTmuxStreams[key]; return; }
+
+          if (data.done) {
+            el.closest('.tmux-section').innerHTML =
+              `<div class="tmux-ended">Session ended</div>`;
+            es.close();
+            delete activeTmuxStreams[key];
+            return;
+          }
+
+          if (data.output !== undefined) {
+            el.textContent = data.output;
+            el.scrollTop = el.scrollHeight;
+          }
+        } catch {}
+      };
+
+      es.onerror = () => {
+        es.close();
+        delete activeTmuxStreams[key];
+        const el = document.getElementById(elId);
+        if (el) {
+          el.closest('.tmux-section').innerHTML =
+            `<div class="tmux-ended">Connection lost</div>`;
+        }
+      };
+    }
+
+    function closeAllTmuxStreams() {
+      for (const key of Object.keys(activeTmuxStreams)) {
+        activeTmuxStreams[key].close();
+        delete activeTmuxStreams[key];
+      }
+    }
+
     async function refresh() {
       try {
-        const res = await fetch('/api/tasks');
-        const tasks = await res.json();
+        const [tasksRes, sessionsRes] = await Promise.all([
+          fetch('/api/tasks'),
+          fetch('/api/tmux-sessions')
+        ]);
+        const tasks = await tasksRes.json();
+        const tmuxSessions = await sessionsRes.json();
         const dashboard = document.getElementById('dashboard');
 
         if (tasks.length === 0) {
-          dashboard.innerHTML = '<div class="empty">No tasks found</div>';
+          closeAllTmuxStreams();
+          dashboard.innerHTML = '<div class="empty">No tasks found in ~/Tasks</div>';
           return;
         }
 
@@ -452,19 +618,42 @@
           groups[project].push(t);
         });
 
-        // Sort projects alphabetically
         const sortedProjects = Object.keys(groups).sort();
+
+        // Track which tmux sessions we need
+        const neededSessions = new Set();
+        const cardResults = [];
 
         let html = '';
         sortedProjects.forEach(project => {
           html += `<div class="project-group">`;
           html += `<div class="project-header">${escapeHtml(project)}</div>`;
-          html += `<div class="project-row">`;
-          groups[project].forEach(t => { html += renderCard(t); });
+          html += `<div class="task-list">`;
+          groups[project].forEach(t => {
+            const result = renderCard(t, tmuxSessions);
+            html += result.html;
+            cardResults.push(result);
+            if (result.liveSession) neededSessions.add(result.liveSession);
+          });
           html += `</div></div>`;
         });
 
+        // Close streams for sessions that are no longer needed
+        for (const key of Object.keys(activeTmuxStreams)) {
+          if (!neededSessions.has(key)) {
+            activeTmuxStreams[key].close();
+            delete activeTmuxStreams[key];
+          }
+        }
+
         dashboard.innerHTML = html;
+
+        // Connect to live tmux sessions
+        cardResults.forEach(r => {
+          if (r.liveSession) {
+            connectTmux(r.liveSession, r.task);
+          }
+        });
       } catch (err) {
         console.error('Failed to refresh:', err);
       }
