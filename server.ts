@@ -539,6 +539,19 @@ read
       }
     }
 
+    if (url.pathname === "/api/projects") {
+      const projectsDir = join(homedir(), "Projects");
+      try {
+        const entries = await readdir(projectsDir, { withFileTypes: true });
+        const dirs = entries
+          .filter((e) => e.isDirectory() && !e.name.startsWith("."))
+          .map((e) => e.name);
+        return Response.json(dirs);
+      } catch {
+        return Response.json([]);
+      }
+    }
+
     if (url.pathname === "/") {
       const html = await readFile(join(import.meta.dir, "index.html"), "utf-8");
       return new Response(html, {

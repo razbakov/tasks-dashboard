@@ -1,0 +1,18 @@
+{
+  "task": "tasks-dashboard-suggestions",
+  "status": "done",
+  "branch": "agent/suggestions",
+  "summary": "Implemented 8 approved UI suggestions: wired Approve button to spawn agent, tasks grouped under project headings, tasks-dashboard-* mapped to DASHBOARD project, suggestions rendered above task cards, agent log parsed with styled HTML (tool/done/error lines), auto-refresh pauses on form input focus, ~/Projects/ scanned for all project discovery (ikigai etc.), and completed tasks show Merge Branch/Archive/Delete Worktree action buttons.",
+  "howToTest": [
+    "Open http://localhost:4000 and verify sidebar shows all projects from ~/Projects/ including IKIGAI, DASHBOARD",
+    "Click SDTV in sidebar - suggestions panel should appear ABOVE task cards",
+    "Click Approve on a suggestion - should show 'Spawning...' and call /api/spawn-agent",
+    "Click '+ Add suggestion' and focus an input - auto-refresh should pause (check no DOM flicker)",
+    "Blur the input - auto-refresh should resume after 100ms",
+    "Scroll to a completed task card - should see Merge Branch, Archive, Delete Worktree buttons",
+    "Click any action button on completed task - should show a toast notification",
+    "Expand Agent Log on a task - lines should be color-coded (purple for tools, green for done, red for errors)",
+    "Verify tasks-dashboard-suggestions appears under DASHBOARD project group"
+  ],
+  "completedAt": "2026-03-19T12:00:00Z"
+}

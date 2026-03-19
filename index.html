@@ -713,6 +713,49 @@
       white-space: nowrap;
       margin-top: 2px;
     }
+
+    /* Completed task action buttons */
+    .card-actions {
+      display: flex;
+      gap: 8px;
+      padding: 0 24px 16px;
+      flex-wrap: wrap;
+    }
+
+    .action-btn {
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      cursor: pointer;
+      background: #f9f9f9;
+      color: #444;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .action-btn:hover {
+      background: #f0f0f0;
+      border-color: #bbb;
+    }
+
+    .action-btn-danger {
+      color: #dc2626;
+      border-color: #fecaca;
+    }
+
+    .action-btn-danger:hover {
+      background: #fef2f2;
+      border-color: #dc2626;
+    }
+
+    /* Agent log styled lines */
+    .agent-log { white-space: normal; }
+    .log-line { padding: 1px 0; white-space: pre-wrap; word-break: break-word; }
+    .log-tool { color: #6366f1; }
+    .log-done { color: #059669; }
+    .log-error { color: #dc2626; }
+    .log-text { color: #333; }
   </style>
 </head>
 <body>
@@ -783,6 +826,7 @@
     }
 
     function deriveProject(name) {
+      if (name.startsWith('tasks-dashboard-')) return 'DASHBOARD';
       const i = name.indexOf('-');
       return i > 0 ? name.substring(0, i).toUpperCase() : 'OTHER';
     }
@@ -792,7 +836,7 @@
       document.getElementById('overlay').classList.add('active');
     }
 
-    async function updateSuggestion(project, id, status, title, description) {
+    async function updateSuggestion(project, id, status, title, description, btnEl) {
       try {
         await fetch('/api/suggestions/' + encodeURIComponent(project) + '/' + encodeURIComponent(id), {
           method: 'PATCH',
@@ -802,8 +846,7 @@
 
         if (status === 'approved') {
           // Update UI immediately to show spawning state
-          const btn = event.target;
-          const actions = btn.closest('.suggestion-actions');
+          const actions = btnEl ? btnEl.closest('.suggestion-actions') : null;
           if (actions) actions.innerHTML = '<div class="suggestion-spawning">Spawning...</div>';
 
           try {
@@ -891,7 +934,7 @@
             h += '<div class="suggestion-spawning">Running</div>';
           } else if (s.status === 'pending') {
             h += '<div class="suggestion-actions">';
-            h += '<button class="btn-approve" onclick="updateSuggestion(\'' + esc(project) + '\',\'' + esc(s.id) + '\',\'approved\',\'' + esc(s.title).replace(/'/g, "\\'") + '\',\'' + esc(s.description).replace(/'/g, "\\'") + '\')">Approve</button>';
+            h += '<button class="btn-approve" onclick="updateSuggestion(\'' + esc(project) + '\',\'' + esc(s.id) + '\',\'approved\',\'' + esc(s.title).replace(/'/g, "\\'") + '\',\'' + esc(s.description).replace(/'/g, "\\'") + '\',this)">Approve</button>';
             h += '<button class="btn-reject" onclick="updateSuggestion(\'' + esc(project) + '\',\'' + esc(s.id) + '\',\'rejected\')">Reject</button>';
             h += '</div>';
           }
@@ -977,6 +1020,25 @@
       document.getElementById('mobile-topbar').innerHTML = mh;
     }
 
+    function renderAgentLog(logText) {
+      if (!logText) return '';
+      const lines = logText.split('\n');
+      let h = '';
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        if (line.startsWith('\u{1F527}')) {
+          h += '<div class="log-line log-tool">' + esc(line) + '</div>';
+        } else if (line.startsWith('\u2705')) {
+          h += '<div class="log-line log-done">' + esc(line) + '</div>';
+        } else if (line.startsWith('\u274C')) {
+          h += '<div class="log-line log-error">' + esc(line) + '</div>';
+        } else {
+          h += '<div class="log-line log-text">' + esc(line) + '</div>';
+        }
+      }
+      return h;
+    }
+
     function renderCard(t, sessions) {
       const enc = encodeURIComponent(t.task);
       const hasApp = !!t.screenshot;
@@ -1035,7 +1097,7 @@
         h += '<div class="section-title">Agent Log</div>';
         h += '</div>';
         h += '<div class="collapsible-body">';
-        h += '<div class="agent-log">' + esc(t.agentLog) + '</div>';
+        h += '<div class="agent-log">' + renderAgentLog(t.agentLog) + '</div>';
         h += '</div>';
         h += '</div>';
       }
@@ -1089,6 +1151,15 @@
         h += '</div>';
       }
 
+      // Action buttons for completed tasks
+      if ((t.status || '').toLowerCase() === 'done') {
+        h += '<div class="card-actions">';
+        h += '<button class="action-btn" onclick="showToast(\'Merge Branch: coming soon\')">Merge Branch</button>';
+        h += '<button class="action-btn" onclick="showToast(\'Archive: coming soon\')">Archive</button>';
+        h += '<button class="action-btn action-btn-danger" onclick="showToast(\'Delete Worktree: coming soon\')">Delete Worktree</button>';
+        h += '</div>';
+      }
+
       h += '</div>'; // end card
       return { html: h, live: live, task: t.task };
     }
@@ -1131,14 +1202,20 @@
 
     async function refresh() {
       try {
-        const [tr, sr, sugr] = await Promise.all([
+        // Skip refresh if user is interacting with a form
+        const focused = document.activeElement;
+        if (focused && focused.closest && focused.closest('.add-suggestion-form')) return;
+
+        const [tr, sr, sugr, pr] = await Promise.all([
           fetch('/api/tasks'),
           fetch('/api/tmux-sessions'),
-          fetch('/api/suggestions')
+          fetch('/api/suggestions'),
+          fetch('/api/projects')
         ]);
         const tasks = tr.ok ? await tr.json() : [];
         const sessions = sr.ok ? await sr.json() : [];
         const suggestions = sugr.ok ? await sugr.json() : {};
+        const projectDirs = pr.ok ? await pr.json() : [];
         const dash = document.getElementById('dashboard');
 
         // Group tasks by project
@@ -1151,6 +1228,12 @@
         // Merge suggestion-only projects into groups (empty task arrays)
         for (const key of Object.keys(suggestions)) {
           const upper = key.toUpperCase();
+          if (!groups[upper]) groups[upper] = [];
+        }
+
+        // Merge discovered projects from ~/Projects/
+        for (const dir of projectDirs) {
+          const upper = dir.toUpperCase();
           if (!groups[upper]) groups[upper] = [];
         }
 
@@ -1211,6 +1294,19 @@
 
     refresh();
     refreshTimer = setInterval(refresh, 5000);
+
+    // Pause auto-refresh when form inputs are focused
+    document.getElementById('dashboard').addEventListener('focusin', (e) => {
+      if (e.target.closest('.add-suggestion-form')) pauseAutoRefresh();
+    });
+    document.getElementById('dashboard').addEventListener('focusout', (e) => {
+      if (e.target.closest('.add-suggestion-form')) {
+        setTimeout(() => {
+          const dash = document.getElementById('dashboard');
+          if (!dash.querySelector('.add-suggestion-form :focus')) resumeAutoRefresh();
+        }, 100);
+      }
+    });
   </script>
 </body>
 </html>
