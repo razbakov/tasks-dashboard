@@ -178,7 +178,6 @@
       font-size: 14px;
       font-weight: 700;
       color: #c92128;
-      text-transform: uppercase;
       letter-spacing: 1.5px;
       margin-bottom: 12px;
       padding-bottom: 8px;
@@ -825,10 +824,14 @@
       return '<span class="badge badge-http-off">Offline</span>';
     }
 
+    function toTitleCase(s) {
+      return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+    }
+
     function deriveProject(name) {
-      if (name.startsWith('tasks-dashboard-')) return 'DASHBOARD';
+      if (name.startsWith('tasks-dashboard-')) return 'Dashboard';
       const i = name.indexOf('-');
-      return i > 0 ? name.substring(0, i).toUpperCase() : 'OTHER';
+      return i > 0 ? toTitleCase(name.substring(0, i)) : 'Other';
     }
 
     function showScreenshot(src) {
@@ -980,7 +983,7 @@
       // Collect all projects from tasks and suggestions
       const allProjects = new Set();
       for (const p of Object.keys(groups)) allProjects.add(p);
-      for (const key of Object.keys(suggestions)) allProjects.add(key.toUpperCase());
+      for (const key of Object.keys(suggestions)) allProjects.add(toTitleCase(key));
       const sorted = Array.from(allProjects).sort();
 
       // Sidebar
@@ -1227,14 +1230,14 @@
 
         // Merge suggestion-only projects into groups (empty task arrays)
         for (const key of Object.keys(suggestions)) {
-          const upper = key.toUpperCase();
-          if (!groups[upper]) groups[upper] = [];
+          const title = toTitleCase(key);
+          if (!groups[title]) groups[title] = [];
         }
 
         // Merge discovered projects from ~/Projects/
         for (const dir of projectDirs) {
-          const upper = dir.toUpperCase();
-          if (!groups[upper]) groups[upper] = [];
+          const title = toTitleCase(dir);
+          if (!groups[title]) groups[title] = [];
         }
 
         // Render sidebar
