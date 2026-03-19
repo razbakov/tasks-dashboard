@@ -810,7 +810,8 @@
     }
 
     function statusBadge(status) {
-      const s = (status || 'pending').toLowerCase();
+      let s = (status || 'pending').toLowerCase();
+      if (s === 'completed') s = 'done';
       const map = { done: 'Done', running: 'Running', failed: 'Failed', pending: 'Pending' };
       return '<span class="badge badge-' + s + '">' + (map[s] || s) + '</span>';
     }
@@ -1209,16 +1210,14 @@
         const focused = document.activeElement;
         if (focused && focused.closest && focused.closest('.add-suggestion-form')) return;
 
-        const [tr, sr, sugr, pr] = await Promise.all([
+        const [tr, sr, sugr] = await Promise.all([
           fetch('/api/tasks'),
           fetch('/api/tmux-sessions'),
-          fetch('/api/suggestions'),
-          fetch('/api/projects')
+          fetch('/api/suggestions')
         ]);
         const tasks = tr.ok ? await tr.json() : [];
         const sessions = sr.ok ? await sr.json() : [];
         const suggestions = sugr.ok ? await sugr.json() : {};
-        const projectDirs = pr.ok ? await pr.json() : [];
         const dash = document.getElementById('dashboard');
 
         // Group tasks by project
@@ -1231,12 +1230,6 @@
         // Merge suggestion-only projects into groups (empty task arrays)
         for (const key of Object.keys(suggestions)) {
           const title = toTitleCase(key);
-          if (!groups[title]) groups[title] = [];
-        }
-
-        // Merge discovered projects from ~/Projects/
-        for (const dir of projectDirs) {
-          const title = toTitleCase(dir);
           if (!groups[title]) groups[title] = [];
         }
 
