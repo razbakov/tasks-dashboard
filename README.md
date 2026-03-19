@@ -7,6 +7,8 @@ A local web UI for monitoring AI coding agents. Works alongside [OpenClaw](https
 - Suggested next tasks with Approve/Reject buttons
 - Screenshots of built pages (app screenshot + Figma design side by side)
 
+![Tasks Dashboard](./screenshot.png)
+
 ## Prerequisites
 
 - [OpenClaw](https://openclaw.ai) installed and running
