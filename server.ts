@@ -54,6 +54,20 @@ async function pingPort(port: number): Promise<number | null> {
   }
 }
 
+function runCommand(cmd: string, args: string[]): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const proc = spawn(cmd, args);
+    let stdout = "";
+    let stderr = "";
+    proc.stdout.on("data", (d: Buffer) => (stdout += d.toString()));
+    proc.stderr.on("data", (d: Buffer) => (stderr += d.toString()));
+    proc.on("close", (code) => {
+      if (code === 0) resolve(stdout);
+      else reject(new Error(stderr || `exit code ${code}`));
+    });
+  });
+}
+
 async function getTaskInfo(taskName: string): Promise<TaskInfo> {
   const taskDir = join(TASKS_DIR, taskName);
   const info: TaskInfo = { task: taskName };
@@ -61,8 +75,7 @@ async function getTaskInfo(taskName: string): Promise<TaskInfo> {
   const taskJsonStr = await readFileSafe(join(taskDir, "task.json"));
   if (taskJsonStr) {
     try {
-      const taskJson = JSON.parse(taskJsonStr);
-      Object.assign(info, taskJson);
+      Object.assign(info, JSON.parse(taskJsonStr));
     } catch {}
   }
 
@@ -125,8 +138,7 @@ async function getAllTasks(): Promise<TaskInfo[]> {
 async function serveScreenshot(taskName: string): Promise<Response> {
   const filePath = join(TASKS_DIR, taskName, "screenshot.png");
   if (await fileExists(filePath)) {
-    const file = Bun.file(filePath);
-    return new Response(file, {
+    return new Response(Bun.file(filePath), {
       headers: { "Content-Type": "image/png" },
     });
   }
@@ -136,26 +148,11 @@ async function serveScreenshot(taskName: string): Promise<Response> {
 async function serveFigmaScreenshot(taskName: string): Promise<Response> {
   const filePath = join(TASKS_DIR, taskName, "figma-screenshot.png");
   if (await fileExists(filePath)) {
-    const file = Bun.file(filePath);
-    return new Response(file, {
+    return new Response(Bun.file(filePath), {
       headers: { "Content-Type": "image/png" },
     });
   }
   return new Response("Not found", { status: 404 });
-}
-
-function runCommand(cmd: string, args: string[]): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const proc = spawn(cmd, args);
-    let stdout = "";
-    let stderr = "";
-    proc.stdout.on("data", (d: Buffer) => (stdout += d.toString()));
-    proc.stderr.on("data", (d: Buffer) => (stderr += d.toString()));
-    proc.on("close", (code) => {
-      if (code === 0) resolve(stdout);
-      else reject(new Error(stderr || `exit code ${code}`));
-    });
-  });
 }
 
 async function getTmuxSessions(): Promise<string[]> {
@@ -195,8 +192,7 @@ function streamTmuxSession(session: string): Response {
 
       const capture = async () => {
         try {
-          const exists = await tmuxSessionExists(session);
-          if (!exists) {
+          if (!(await tmuxSessionExists(session))) {
             send(JSON.stringify({ done: true }));
             cleanup();
             return;
@@ -241,14 +237,6 @@ function streamTmuxSession(session: string): Response {
   });
 }
 
-async function serveHTML(): Promise<Response> {
-  const htmlPath = join(import.meta.dir, "index.html");
-  const html = await readFile(htmlPath, "utf-8");
-  return new Response(html, {
-    headers: { "Content-Type": "text/html" },
-  });
-}
-
 const server = Bun.serve({
   port: PORT,
   async fetch(req) {
@@ -269,8 +257,7 @@ const server = Bun.serve({
         url.pathname.replace("/api/tmux/", "")
       );
       if (!session) return new Response("Missing session", { status: 400 });
-      const exists = await tmuxSessionExists(session);
-      if (!exists) {
+      if (!(await tmuxSessionExists(session))) {
         return new Response(
           `data: ${JSON.stringify({ done: true })}\n\n`,
           {
@@ -299,7 +286,10 @@ const server = Bun.serve({
     }
 
     if (url.pathname === "/") {
-      return serveHTML();
+      const html = await readFile(join(import.meta.dir, "index.html"), "utf-8");
+      return new Response(html, {
+        headers: { "Content-Type": "text/html" },
+      });
     }
 
     return new Response("Not found", { status: 404 });

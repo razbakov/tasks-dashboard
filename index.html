@@ -5,18 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tasks Dashboard</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
-      background: #fafafa;
-      color: #1a1a1a;
+      background: #f8f8f8;
+      color: #111;
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
     }
 
     header {
-      padding: 32px 48px 24px;
+      padding: 28px 48px 20px;
       display: flex;
       align-items: baseline;
       justify-content: space-between;
@@ -25,164 +25,151 @@
     }
 
     header h1 {
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 600;
       color: #c92128;
       letter-spacing: -0.3px;
     }
 
     .refresh-info {
-      font-size: 12px;
-      color: #999;
-      font-weight: 400;
+      font-size: 11px;
+      color: #aaa;
     }
 
     .dashboard {
-      padding: 32px 48px 60px;
+      padding: 28px 48px 64px;
       max-width: 1600px;
       margin: 0 auto;
     }
 
-    .project-group {
-      margin-bottom: 40px;
-    }
+    /* Project groups */
+    .project-group { margin-bottom: 36px; }
 
     .project-header {
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       color: #c92128;
       text-transform: uppercase;
       letter-spacing: 1.5px;
-      margin-bottom: 12px;
-      padding-bottom: 8px;
-      border-bottom: 2px solid #f0f0f0;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #eee;
     }
 
     .task-list {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
 
+    /* Card row */
     .card {
       background: #fff;
-      border: 1px solid #e8e8e8;
-      border-radius: 10px;
+      border: 1px solid #e5e5e5;
+      border-radius: 8px;
       display: flex;
       flex-direction: row;
-      transition: border-color 0.15s ease, box-shadow 0.15s ease;
       overflow: hidden;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
 
     .card:hover {
       border-color: #d0d0d0;
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+      box-shadow: 0 1px 8px rgba(0,0,0,0.04);
     }
 
-    /* Left column: screenshots */
+    /* Left: screenshots */
     .card-left {
       width: 280px;
       min-width: 280px;
-      padding: 16px;
+      padding: 14px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
       border-right: 1px solid #f0f0f0;
-      background: #fcfcfc;
+      background: #fafafa;
     }
 
-    .screenshot-container {
+    .screenshot-wrap {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 3px;
     }
 
-    .screenshot-label {
-      font-size: 10px;
-      font-weight: 600;
+    .screenshot-badge {
+      font-size: 9px;
+      font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      padding: 2px 8px;
-      border-radius: 4px;
+      padding: 1px 7px;
+      border-radius: 3px;
       width: fit-content;
     }
 
-    .screenshot-label-app {
-      background: #eef2ff;
-      color: #4f46e5;
-    }
-
-    .screenshot-label-figma {
-      background: #fdf2f8;
-      color: #db2777;
-    }
+    .screenshot-badge-app { background: #eef2ff; color: #4f46e5; }
+    .screenshot-badge-figma { background: #fdf2f8; color: #db2777; }
 
     .screenshot-thumb {
       cursor: pointer;
-      border-radius: 6px;
+      border-radius: 5px;
       overflow: hidden;
-      border: 1px solid #e8e8e8;
+      border: 1px solid #e5e5e5;
       transition: border-color 0.15s;
     }
 
-    .screenshot-thumb:hover {
-      border-color: #c0c0c0;
-    }
-
-    .screenshot-thumb img {
-      width: 100%;
-      display: block;
-    }
+    .screenshot-thumb:hover { border-color: #bbb; }
+    .screenshot-thumb img { width: 100%; display: block; }
 
     .no-screenshots {
+      flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      flex: 1;
       color: #ccc;
-      font-size: 12px;
+      font-size: 11px;
     }
 
-    /* Middle column: content */
+    /* Middle: content */
     .card-middle {
       flex: 1;
       min-width: 0;
-      padding: 16px 20px;
+      padding: 14px 18px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
     }
 
-    .card-title-row {
+    .title-row {
       display: flex;
       align-items: baseline;
       gap: 8px;
+      flex-wrap: wrap;
     }
 
     .task-name {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
-      color: #1a1a1a;
+      color: #111;
     }
 
     .branch {
       font-size: 11px;
-      color: #999;
+      color: #aaa;
       font-family: 'SF Mono', 'Fira Code', Menlo, monospace;
     }
 
     .meta-row {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       flex-wrap: wrap;
     }
 
     .badge {
-      font-size: 11px;
-      padding: 2px 10px;
-      border-radius: 100px;
-      font-weight: 500;
+      font-size: 10px;
+      padding: 2px 9px;
+      border-radius: 99px;
+      font-weight: 600;
       white-space: nowrap;
       letter-spacing: 0.2px;
     }
@@ -190,60 +177,55 @@
     .badge-done { background: #ecfdf5; color: #059669; }
     .badge-running { background: #fffbeb; color: #d97706; }
     .badge-failed { background: #fef2f2; color: #dc2626; }
-    .badge-pending { background: #f0f0ff; color: #6366f1; }
-    .badge-server-up { background: #ecfdf5; color: #059669; }
-    .badge-server-down { background: #fef2f2; color: #dc2626; }
-    .badge-server-off { background: #f5f5f5; color: #999; }
+    .badge-pending { background: #f4f4f5; color: #71717a; }
+    .badge-http-ok { background: #ecfdf5; color: #059669; }
+    .badge-http-err { background: #fef2f2; color: #dc2626; }
+    .badge-http-off { background: #f4f4f5; color: #a1a1aa; }
 
     .url-link {
       color: #c92128;
       text-decoration: none;
-      font-size: 12px;
+      font-size: 11px;
       font-family: 'SF Mono', 'Fira Code', Menlo, monospace;
-      transition: color 0.15s;
     }
 
-    .url-link:hover {
-      color: #a01b21;
-      text-decoration: underline;
-    }
+    .url-link:hover { text-decoration: underline; }
 
-    .summary {
-      font-size: 15px;
+    .summary-text {
+      font-size: 14px;
       font-weight: 600;
-      color: #1a1a1a;
-      line-height: 1.5;
+      color: #111;
+      line-height: 1.4;
       white-space: pre-line;
     }
 
     .original-task {
       font-size: 13px;
       color: #777;
-      line-height: 1.6;
+      line-height: 1.55;
       white-space: pre-wrap;
     }
 
     .section-label {
-      font-size: 11px;
+      font-size: 10px;
       text-transform: uppercase;
-      color: #999;
+      color: #aaa;
       letter-spacing: 0.5px;
       font-weight: 600;
-      margin-top: 4px;
+      margin-top: 2px;
     }
 
     .checklist {
       list-style: none;
-      padding: 0;
-      font-size: 13px;
+      font-size: 12px;
       display: flex;
       flex-direction: column;
-      gap: 3px;
+      gap: 2px;
     }
 
     .checklist li {
       color: #555;
-      padding-left: 14px;
+      padding-left: 12px;
       position: relative;
       line-height: 1.5;
     }
@@ -252,47 +234,47 @@
       content: "";
       position: absolute;
       left: 0;
-      top: 8px;
-      width: 5px;
-      height: 5px;
+      top: 7px;
+      width: 4px;
+      height: 4px;
       border-radius: 50%;
       background: #ccc;
     }
 
-    /* Right column: log + tmux */
+    /* Right: log + tmux */
     .card-right {
       width: 340px;
       min-width: 340px;
-      padding: 16px;
+      padding: 14px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
       border-left: 1px solid #f0f0f0;
-      background: #fcfcfc;
+      background: #fafafa;
     }
 
     .agent-log {
-      background: #f5f5f5;
-      border: 1px solid #e8e8e8;
-      border-radius: 6px;
-      padding: 10px 12px;
+      background: #f3f3f3;
+      border: 1px solid #e5e5e5;
+      border-radius: 5px;
+      padding: 8px 10px;
       font-family: 'SF Mono', 'Fira Code', Menlo, monospace;
-      font-size: 11px;
+      font-size: 10px;
       color: #555;
-      line-height: 1.6;
+      line-height: 1.55;
       max-height: 300px;
       overflow-y: auto;
       white-space: pre;
       flex: 1;
     }
 
-    .agent-log::-webkit-scrollbar { width: 5px; }
+    .agent-log::-webkit-scrollbar { width: 4px; }
     .agent-log::-webkit-scrollbar-track { background: transparent; }
-    .agent-log::-webkit-scrollbar-thumb { background: #ddd; border-radius: 3px; }
+    .agent-log::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
 
     .tmux-section {
-      border: 1px solid #e8e8e8;
-      border-radius: 6px;
+      border: 1px solid #e5e5e5;
+      border-radius: 5px;
       overflow: hidden;
     }
 
@@ -300,17 +282,17 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      padding: 6px 10px;
-      background: #f9f9f9;
-      border-bottom: 1px solid #e8e8e8;
-      font-size: 11px;
+      padding: 5px 10px;
+      background: #f7f7f7;
+      border-bottom: 1px solid #e5e5e5;
+      font-size: 10px;
       color: #666;
       font-weight: 500;
     }
 
     .live-dot {
-      width: 8px;
-      height: 8px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
       background: #22c55e;
       animation: pulse 2s ease-in-out infinite;
@@ -322,10 +304,10 @@
     }
 
     .tmux-output {
-      background: #f5f5f5;
-      padding: 8px 10px;
+      background: #f3f3f3;
+      padding: 6px 10px;
       font-family: 'SF Mono', 'Fira Code', Menlo, monospace;
-      font-size: 11px;
+      font-size: 10px;
       color: #555;
       line-height: 1.5;
       max-height: 180px;
@@ -334,25 +316,26 @@
     }
 
     .tmux-ended {
-      padding: 6px 10px;
-      font-size: 11px;
-      color: #999;
+      padding: 5px 10px;
+      font-size: 10px;
+      color: #aaa;
       text-align: center;
-      background: #f9f9f9;
+      background: #f7f7f7;
     }
 
     .timestamp {
-      font-size: 11px;
+      font-size: 10px;
       color: #bbb;
+      margin-top: auto;
     }
 
-    /* Overlay for screenshots */
+    /* Screenshot overlay */
     .overlay {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(8px);
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(6px);
       z-index: 100;
       cursor: zoom-out;
       align-items: center;
@@ -364,17 +347,18 @@
     .overlay img {
       max-width: 92vw;
       max-height: 92vh;
-      border-radius: 10px;
-      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.3);
+      border-radius: 8px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.25);
     }
 
     .empty {
       text-align: center;
       padding: 80px 24px;
       color: #bbb;
-      font-size: 15px;
+      font-size: 14px;
     }
 
+    /* Responsive */
     @media (max-width: 1200px) {
       .card { flex-direction: column; }
       .card-left {
@@ -384,7 +368,7 @@
         border-right: none;
         border-bottom: 1px solid #f0f0f0;
       }
-      .card-left .screenshot-container { flex: 1; }
+      .card-left .screenshot-wrap { flex: 1; }
       .card-right {
         width: 100%;
         min-width: 0;
@@ -395,7 +379,7 @@
     }
 
     @media (max-width: 640px) {
-      header { padding: 20px 16px 16px; }
+      header { padding: 16px; }
       .dashboard { padding: 16px; }
     }
   </style>
@@ -407,255 +391,206 @@
   </header>
   <div class="dashboard" id="dashboard"></div>
   <div class="overlay" id="overlay" onclick="this.classList.remove('active')">
-    <img id="overlay-img" src="" alt="Screenshot">
+    <img id="overlay-img" src="" alt="">
   </div>
 
   <script>
-    const activeTmuxStreams = {};
+    const activeTmux = {};
 
-    function escapeHtml(str) {
-      const div = document.createElement('div');
-      div.textContent = str;
-      return div.innerHTML;
+    function esc(str) {
+      const el = document.createElement('div');
+      el.textContent = str;
+      return el.innerHTML;
     }
 
     function statusBadge(status) {
       const s = (status || 'pending').toLowerCase();
-      const labels = { done: 'Done', running: 'Running', failed: 'Failed', pending: 'Pending' };
-      return `<span class="badge badge-${s}">${labels[s] || s}</span>`;
+      const map = { done: 'Done', running: 'Running', failed: 'Failed', pending: 'Pending' };
+      return '<span class="badge badge-' + s + '">' + (map[s] || s) + '</span>';
     }
 
-    function serverBadge(devPort, devServerStatus) {
-      if (!devPort) return `<span class="badge badge-server-off">No port</span>`;
-      if (devServerStatus && devServerStatus >= 200 && devServerStatus < 400)
-        return `<span class="badge badge-server-up">${devServerStatus}</span>`;
-      if (devServerStatus)
-        return `<span class="badge badge-server-down">${devServerStatus}</span>`;
-      return `<span class="badge badge-server-down">Offline</span>`;
+    function httpBadge(port, status) {
+      if (!port) return '<span class="badge badge-http-off">No port</span>';
+      if (status && status >= 200 && status < 400)
+        return '<span class="badge badge-http-ok">' + status + '</span>';
+      if (status)
+        return '<span class="badge badge-http-err">' + status + '</span>';
+      return '<span class="badge badge-http-off">Offline</span>';
     }
 
-    function deriveProject(taskName) {
-      const parts = taskName.split('-');
-      if (parts.length > 1) return parts[0].toUpperCase();
-      return 'OTHER';
+    function deriveProject(name) {
+      const i = name.indexOf('-');
+      return i > 0 ? name.substring(0, i).toUpperCase() : 'OTHER';
     }
 
     function showScreenshot(src) {
-      const overlay = document.getElementById('overlay');
-      const img = document.getElementById('overlay-img');
-      img.src = src;
-      overlay.classList.add('active');
+      document.getElementById('overlay-img').src = src;
+      document.getElementById('overlay').classList.add('active');
     }
 
-    function renderCard(t, tmuxSessions) {
-      const taskEnc = encodeURIComponent(t.task);
-      const hasScreenshot = !!t.screenshot;
+    function renderCard(t, sessions) {
+      const enc = encodeURIComponent(t.task);
+      const hasApp = !!t.screenshot;
       const hasFigma = !!t.figmaScreenshot;
-      const hasAnyScreenshot = hasScreenshot || hasFigma;
+      const hasAny = hasApp || hasFigma;
 
-      // Determine tmux session
-      const wfSession = `wf-${t.task}`;
-      const devSession = `dev-${t.task}`;
-      const liveSession = tmuxSessions.includes(wfSession) ? wfSession
-        : tmuxSessions.includes(devSession) ? devSession
-        : null;
+      const wf = 'wf-' + t.task;
+      const dev = 'dev-' + t.task;
+      const live = sessions.includes(wf) ? wf : sessions.includes(dev) ? dev : null;
 
-      let html = `<div class="card">`;
+      let h = '<div class="card">';
 
-      // LEFT: screenshots
-      html += `<div class="card-left">`;
-      if (hasScreenshot) {
-        html += `<div class="screenshot-container">`;
-        if (hasFigma) html += `<span class="screenshot-label screenshot-label-app">App</span>`;
-        html += `<div class="screenshot-thumb" onclick="showScreenshot('/screenshots/${taskEnc}')">`;
-        html += `<img src="/screenshots/${taskEnc}" alt="Screenshot" loading="lazy">`;
-        html += `</div></div>`;
+      // Left
+      h += '<div class="card-left">';
+      if (hasApp) {
+        h += '<div class="screenshot-wrap">';
+        if (hasFigma) h += '<span class="screenshot-badge screenshot-badge-app">App</span>';
+        h += '<div class="screenshot-thumb" onclick="showScreenshot(\'/screenshots/' + enc + '\')">';
+        h += '<img src="/screenshots/' + enc + '" alt="Screenshot" loading="lazy">';
+        h += '</div></div>';
       }
       if (hasFigma) {
-        html += `<div class="screenshot-container">`;
-        html += `<span class="screenshot-label screenshot-label-figma">Figma</span>`;
-        html += `<div class="screenshot-thumb" onclick="showScreenshot('/figma-screenshots/${taskEnc}')">`;
-        html += `<img src="/figma-screenshots/${taskEnc}" alt="Figma" loading="lazy">`;
-        html += `</div></div>`;
+        h += '<div class="screenshot-wrap">';
+        h += '<span class="screenshot-badge screenshot-badge-figma">Figma</span>';
+        h += '<div class="screenshot-thumb" onclick="showScreenshot(\'/figma-screenshots/' + enc + '\')">';
+        h += '<img src="/figma-screenshots/' + enc + '" alt="Figma" loading="lazy">';
+        h += '</div></div>';
       }
-      if (!hasAnyScreenshot) {
-        html += `<div class="no-screenshots">No screenshots</div>`;
-      }
-      html += `</div>`;
+      if (!hasAny) h += '<div class="no-screenshots">No screenshots</div>';
+      h += '</div>';
 
-      // MIDDLE: content
-      html += `<div class="card-middle">`;
+      // Middle
+      h += '<div class="card-middle">';
+      h += '<div class="title-row">';
+      h += '<span class="task-name">' + esc(t.task) + '</span>';
+      if (t.branch) h += '<span class="branch">' + esc(t.branch) + '</span>';
+      h += '</div>';
 
-      // Title + branch
-      html += `<div class="card-title-row">`;
-      html += `<span class="task-name">${escapeHtml(t.task)}</span>`;
-      if (t.branch) html += `<span class="branch">${escapeHtml(t.branch)}</span>`;
-      html += `</div>`;
+      h += '<div class="meta-row">';
+      h += statusBadge(t.status);
+      h += httpBadge(t.devPort, t.devServerStatus);
+      if (t.url) h += '<a class="url-link" href="' + esc(t.url) + '" target="_blank">' + esc(t.url) + '</a>';
+      h += '</div>';
 
-      // Status + HTTP + URL
-      html += `<div class="meta-row">`;
-      html += statusBadge(t.status);
-      html += serverBadge(t.devPort, t.devServerStatus);
-      if (t.url) html += `<a class="url-link" href="${escapeHtml(t.url)}" target="_blank">${escapeHtml(t.url)}</a>`;
-      html += `</div>`;
+      if (t.summary) h += '<div class="summary-text">' + esc(t.summary) + '</div>';
+      if (t.originalTask) h += '<div class="original-task">' + esc(t.originalTask) + '</div>';
 
-      // Summary
-      if (t.summary) {
-        html += `<div class="summary">${escapeHtml(t.summary)}</div>`;
-      }
-
-      // Original task
-      if (t.originalTask) {
-        html += `<div class="original-task">${escapeHtml(t.originalTask)}</div>`;
-      }
-
-      // How to test
       if (t.howToTest && t.howToTest.length) {
-        html += `<div class="section-label">How to test</div>`;
-        html += `<ul class="checklist">`;
-        t.howToTest.forEach(item => { html += `<li>${escapeHtml(item)}</li>`; });
-        html += `</ul>`;
+        h += '<div class="section-label">How to test</div><ul class="checklist">';
+        for (const item of t.howToTest) h += '<li>' + esc(item) + '</li>';
+        h += '</ul>';
       }
+      h += '</div>';
 
-      html += `</div>`;
-
-      // RIGHT: log + tmux + timestamp
-      html += `<div class="card-right">`;
-
+      // Right
+      h += '<div class="card-right">';
       if (t.agentLog) {
-        html += `<div class="section-label">Agent Log</div>`;
-        html += `<div class="agent-log">${escapeHtml(t.agentLog)}</div>`;
+        h += '<div class="section-label">Agent Log</div>';
+        h += '<div class="agent-log">' + esc(t.agentLog) + '</div>';
       }
 
-      if (liveSession) {
-        const tmuxId = `tmux-${t.task}`;
-        html += `<div class="tmux-section">`;
-        html += `<div class="tmux-header"><div class="live-dot"></div> Live &mdash; ${escapeHtml(liveSession)}</div>`;
-        html += `<div class="tmux-output" id="${tmuxId}">Connecting...</div>`;
-        html += `</div>`;
+      if (live) {
+        const tid = 'tmux-' + t.task;
+        h += '<div class="tmux-section">';
+        h += '<div class="tmux-header"><div class="live-dot"></div> Live &mdash; ' + esc(live) + '</div>';
+        h += '<div class="tmux-output" id="' + tid + '">Connecting...</div>';
+        h += '</div>';
       }
 
       if (t.completedAt) {
-        const d = new Date(t.completedAt);
-        html += `<div class="timestamp">Completed ${d.toLocaleString()}</div>`;
+        h += '<div class="timestamp">Completed ' + new Date(t.completedAt).toLocaleString() + '</div>';
       }
 
-      html += `</div>`;
-      html += `</div>`;
-      return { html, liveSession, task: t.task };
+      h += '</div></div>';
+      return { html: h, live: live, task: t.task };
     }
 
-    function connectTmux(session, taskName) {
-      const elId = `tmux-${taskName}`;
-      const key = session;
+    function connectTmux(session, task) {
+      if (activeTmux[session]) return;
+      const elId = 'tmux-' + task;
+      const es = new EventSource('/api/tmux/' + encodeURIComponent(session));
+      activeTmux[session] = es;
 
-      // Don't reconnect if already connected
-      if (activeTmuxStreams[key]) return;
-
-      const es = new EventSource(`/api/tmux/${encodeURIComponent(session)}`);
-      activeTmuxStreams[key] = es;
-
-      es.onmessage = (event) => {
+      es.onmessage = function(e) {
         try {
-          const data = JSON.parse(event.data);
+          const d = JSON.parse(e.data);
           const el = document.getElementById(elId);
-          if (!el) { es.close(); delete activeTmuxStreams[key]; return; }
-
-          if (data.done) {
-            el.closest('.tmux-section').innerHTML =
-              `<div class="tmux-ended">Session ended</div>`;
-            es.close();
-            delete activeTmuxStreams[key];
-            return;
+          if (!el) { es.close(); delete activeTmux[session]; return; }
+          if (d.done) {
+            el.closest('.tmux-section').innerHTML = '<div class="tmux-ended">Session ended</div>';
+            es.close(); delete activeTmux[session]; return;
           }
-
-          if (data.output !== undefined) {
-            el.textContent = data.output;
+          if (d.output !== undefined) {
+            el.textContent = d.output;
             el.scrollTop = el.scrollHeight;
           }
         } catch {}
       };
 
-      es.onerror = () => {
-        es.close();
-        delete activeTmuxStreams[key];
+      es.onerror = function() {
+        es.close(); delete activeTmux[session];
         const el = document.getElementById(elId);
-        if (el) {
-          el.closest('.tmux-section').innerHTML =
-            `<div class="tmux-ended">Connection lost</div>`;
-        }
+        if (el) el.closest('.tmux-section').innerHTML = '<div class="tmux-ended">Connection lost</div>';
       };
     }
 
-    function closeAllTmuxStreams() {
-      for (const key of Object.keys(activeTmuxStreams)) {
-        activeTmuxStreams[key].close();
-        delete activeTmuxStreams[key];
+    function closeAllTmux() {
+      for (const k of Object.keys(activeTmux)) {
+        activeTmux[k].close();
+        delete activeTmux[k];
       }
     }
 
     async function refresh() {
       try {
-        const [tasksRes, sessionsRes] = await Promise.all([
+        const [tr, sr] = await Promise.all([
           fetch('/api/tasks'),
           fetch('/api/tmux-sessions')
         ]);
-        const tasks = await tasksRes.json();
-        const tmuxSessions = await sessionsRes.json();
-        const dashboard = document.getElementById('dashboard');
+        const tasks = await tr.json();
+        const sessions = await sr.json();
+        const dash = document.getElementById('dashboard');
 
-        if (tasks.length === 0) {
-          closeAllTmuxStreams();
-          dashboard.innerHTML = '<div class="empty">No tasks found in ~/Tasks</div>';
+        if (!tasks.length) {
+          closeAllTmux();
+          dash.innerHTML = '<div class="empty">No tasks found in ~/Tasks</div>';
           return;
         }
 
-        // Group by project
         const groups = {};
-        tasks.forEach(t => {
-          const project = deriveProject(t.task);
-          if (!groups[project]) groups[project] = [];
-          groups[project].push(t);
-        });
-
-        const sortedProjects = Object.keys(groups).sort();
-
-        // Track which tmux sessions we need
-        const neededSessions = new Set();
-        const cardResults = [];
-
-        let html = '';
-        sortedProjects.forEach(project => {
-          html += `<div class="project-group">`;
-          html += `<div class="project-header">${escapeHtml(project)}</div>`;
-          html += `<div class="task-list">`;
-          groups[project].forEach(t => {
-            const result = renderCard(t, tmuxSessions);
-            html += result.html;
-            cardResults.push(result);
-            if (result.liveSession) neededSessions.add(result.liveSession);
-          });
-          html += `</div></div>`;
-        });
-
-        // Close streams for sessions that are no longer needed
-        for (const key of Object.keys(activeTmuxStreams)) {
-          if (!neededSessions.has(key)) {
-            activeTmuxStreams[key].close();
-            delete activeTmuxStreams[key];
-          }
+        for (const t of tasks) {
+          const p = deriveProject(t.task);
+          (groups[p] = groups[p] || []).push(t);
         }
 
-        dashboard.innerHTML = html;
+        const needed = new Set();
+        const results = [];
+        let html = '';
 
-        // Connect to live tmux sessions
-        cardResults.forEach(r => {
-          if (r.liveSession) {
-            connectTmux(r.liveSession, r.task);
+        for (const project of Object.keys(groups).sort()) {
+          html += '<div class="project-group">';
+          html += '<div class="project-header">' + esc(project) + '</div>';
+          html += '<div class="task-list">';
+          for (const t of groups[project]) {
+            const r = renderCard(t, sessions);
+            html += r.html;
+            results.push(r);
+            if (r.live) needed.add(r.live);
           }
-        });
+          html += '</div></div>';
+        }
+
+        for (const k of Object.keys(activeTmux)) {
+          if (!needed.has(k)) { activeTmux[k].close(); delete activeTmux[k]; }
+        }
+
+        dash.innerHTML = html;
+
+        for (const r of results) {
+          if (r.live) connectTmux(r.live, r.task);
+        }
       } catch (err) {
-        console.error('Failed to refresh:', err);
+        console.error('Refresh failed:', err);
       }
     }
 
