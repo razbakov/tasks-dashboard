@@ -38,10 +38,137 @@
       color: #999;
     }
 
+    /* Sidebar */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 200px;
+      background: #fff;
+      border-right: 1px solid #e5e5e5;
+      z-index: 50;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .sidebar-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #c92128;
+      padding: 16px 16px 12px;
+      letter-spacing: -0.2px;
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    .sidebar-list {
+      list-style: none;
+      flex: 1;
+    }
+
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      color: #444;
+      border-left: 3px solid transparent;
+      transition: background 0.1s, border-color 0.1s;
+    }
+
+    .sidebar-item:hover {
+      background: #fafafa;
+    }
+
+    .sidebar-item.active {
+      background: #fef2f2;
+      border-left-color: #c92128;
+      color: #c92128;
+      font-weight: 700;
+    }
+
+    .sidebar-item-name {
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .sidebar-count {
+      font-size: 11px;
+      color: #999;
+      font-weight: 600;
+    }
+
+    .sidebar-badge {
+      font-size: 10px;
+      font-weight: 700;
+      background: #c92128;
+      color: #fff;
+      border-radius: 99px;
+      padding: 1px 6px;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    /* Layout with sidebar */
+    .layout-wrapper {
+      margin-left: 200px;
+    }
+
     .dashboard {
       padding: 32px 16px 64px;
       max-width: 660px;
       margin: 0 auto;
+    }
+
+    /* Mobile: sidebar becomes top bar */
+    .mobile-topbar {
+      display: none;
+      background: #fff;
+      border-bottom: 1px solid #e5e5e5;
+      overflow-x: auto;
+      white-space: nowrap;
+      padding: 8px 12px;
+      gap: 4px;
+    }
+
+    .mobile-topbar-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 12px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #444;
+      background: #f5f5f5;
+      border: 1px solid #e5e5e5;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.1s;
+    }
+
+    .mobile-topbar-item.active {
+      background: #c92128;
+      color: #fff;
+      border-color: #c92128;
+    }
+
+    .mobile-topbar-item .sidebar-badge {
+      font-size: 9px;
+      padding: 0 5px;
+    }
+
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .layout-wrapper { margin-left: 0; }
+      .mobile-topbar { display: flex; }
     }
 
     /* Project groups */
@@ -472,21 +599,111 @@
       padding: 12px 20px;
       font-size: 13px;
       color: #aaa;
+      font-style: italic;
+    }
+
+    /* Add suggestion form */
+    .add-suggestion-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 16px;
+      margin: 8px 20px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #c92128;
+      background: none;
+      border: 1px dashed #ddd;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .add-suggestion-btn:hover {
+      background: #fef2f2;
+      border-color: #c92128;
+    }
+
+    .add-suggestion-form {
+      display: none;
+      padding: 12px 20px 16px;
+      border-top: 1px solid #f0f0f0;
+    }
+
+    .add-suggestion-form.open { display: block; }
+
+    .add-suggestion-form input,
+    .add-suggestion-form textarea,
+    .add-suggestion-form select {
+      display: block;
+      width: 100%;
+      margin-bottom: 8px;
+      padding: 8px 10px;
+      font-size: 13px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-family: inherit;
+      resize: vertical;
+    }
+
+    .add-suggestion-form textarea { min-height: 48px; }
+
+    .add-suggestion-form select { width: auto; }
+
+    .add-form-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .btn-submit-suggestion {
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      background: #c92128;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-submit-suggestion:hover { background: #a91b21; }
+
+    .btn-cancel-suggestion {
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #666;
+      background: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Tasks Dashboard</h1>
-    <div class="refresh-info">Auto-refresh 5s</div>
-  </header>
-  <div class="dashboard" id="dashboard"></div>
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar"></nav>
+
+  <!-- Mobile top bar -->
+  <div class="mobile-topbar" id="mobile-topbar"></div>
+
+  <div class="layout-wrapper">
+    <header>
+      <h1>Tasks Dashboard</h1>
+      <div class="refresh-info">Auto-refresh 5s</div>
+    </header>
+    <div class="dashboard" id="dashboard"></div>
+  </div>
+
   <div class="overlay" id="overlay" onclick="this.classList.remove('active')">
     <img id="overlay-img" src="" alt="">
   </div>
 
   <script>
     const activeTmux = {};
+    let activeFilter = null; // null = all projects
 
     function esc(str) {
       const el = document.createElement('div');
@@ -532,8 +749,42 @@
       }
     }
 
+    function toggleAddForm(btn) {
+      const form = btn.nextElementSibling;
+      const isOpen = form.classList.toggle('open');
+      btn.style.display = isOpen ? 'none' : '';
+    }
+
+    async function submitSuggestion(project, formEl) {
+      const title = formEl.querySelector('.sug-title').value.trim();
+      const desc = formEl.querySelector('.sug-desc').value.trim();
+      const priority = formEl.querySelector('.sug-priority').value;
+      if (!title) return;
+
+      try {
+        await fetch('/api/suggestions/' + encodeURIComponent(project), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, description: desc, priority })
+        });
+        formEl.classList.remove('open');
+        const btn = formEl.previousElementSibling;
+        if (btn) btn.style.display = '';
+        refresh();
+      } catch (err) {
+        console.error('Failed to add suggestion:', err);
+      }
+    }
+
+    function cancelAddForm(formEl) {
+      formEl.classList.remove('open');
+      const btn = formEl.previousElementSibling;
+      if (btn) btn.style.display = '';
+    }
+
     function renderSuggestions(project, suggestions) {
       const items = (suggestions || []);
+      const pendingCount = items.filter(s => s.status === 'pending').length;
       let h = '<div class="suggestions-panel">';
       h += '<div class="suggestions-header" onclick="toggleSuggestions(this)">';
       h += '<span class="toggle-icon">\u25BC</span>';
@@ -541,7 +792,7 @@
       h += '</div>';
       h += '<div class="suggestions-body">';
       if (!items.length) {
-        h += '<div class="suggestions-empty">No suggestions</div>';
+        h += '<div class="suggestions-empty">No suggestions yet</div>';
       } else {
         for (const s of items) {
           const cls = s.status === 'rejected' ? ' rejected' : '';
@@ -562,6 +813,18 @@
           h += '</div>';
         }
       }
+      // Add suggestion button + form
+      const formId = 'add-form-' + project.replace(/[^a-z0-9]/gi, '_');
+      h += '<button class="add-suggestion-btn" onclick="toggleAddForm(this)">+ Add suggestion</button>';
+      h += '<div class="add-suggestion-form" id="' + formId + '">';
+      h += '<input class="sug-title" type="text" placeholder="Suggestion title...">';
+      h += '<textarea class="sug-desc" placeholder="Description (optional)"></textarea>';
+      h += '<div class="add-form-actions">';
+      h += '<select class="sug-priority"><option value="medium">Medium</option><option value="high">High</option><option value="low">Low</option></select>';
+      h += '<button class="btn-submit-suggestion" onclick="submitSuggestion(\'' + esc(project) + '\', this.closest(\'.add-suggestion-form\'))">Add</button>';
+      h += '<button class="btn-cancel-suggestion" onclick="cancelAddForm(this.closest(\'.add-suggestion-form\'))">Cancel</button>';
+      h += '</div>';
+      h += '</div>';
       h += '</div></div>';
       return h;
     }
@@ -578,6 +841,55 @@
       const icon = btn.querySelector('.toggle-icon');
       const isOpen = body.classList.toggle('open');
       icon.textContent = isOpen ? '\u25BC' : '\u25B6';
+    }
+
+    function setFilter(project) {
+      activeFilter = project;
+      refresh();
+    }
+
+    function renderSidebar(groups, suggestions) {
+      // Collect all projects from tasks and suggestions
+      const allProjects = new Set();
+      for (const p of Object.keys(groups)) allProjects.add(p);
+      for (const key of Object.keys(suggestions)) allProjects.add(key.toUpperCase());
+      const sorted = Array.from(allProjects).sort();
+
+      // Sidebar
+      let sh = '<div class="sidebar-title">Projects</div>';
+      sh += '<ul class="sidebar-list">';
+      sh += '<li class="sidebar-item' + (activeFilter === null ? ' active' : '') + '" onclick="setFilter(null)">';
+      sh += '<span class="sidebar-item-name">All Projects</span>';
+      sh += '</li>';
+      for (const p of sorted) {
+        const taskCount = (groups[p] || []).length;
+        const sugKey = p.toLowerCase();
+        const pendingSugs = (suggestions[sugKey] || []).filter(s => s.status === 'pending').length;
+        const isActive = activeFilter === p;
+        sh += '<li class="sidebar-item' + (isActive ? ' active' : '') + '" onclick="setFilter(\'' + esc(p) + '\')">';
+        sh += '<span class="sidebar-item-name">' + esc(p) + '</span>';
+        sh += '<span class="sidebar-count">' + taskCount + '</span>';
+        if (pendingSugs > 0) {
+          sh += '<span class="sidebar-badge">' + pendingSugs + '</span>';
+        }
+        sh += '</li>';
+      }
+      sh += '</ul>';
+      document.getElementById('sidebar').innerHTML = sh;
+
+      // Mobile top bar
+      let mh = '';
+      mh += '<div class="mobile-topbar-item' + (activeFilter === null ? ' active' : '') + '" onclick="setFilter(null)">All</div>';
+      for (const p of sorted) {
+        const sugKey = p.toLowerCase();
+        const pendingSugs = (suggestions[sugKey] || []).filter(s => s.status === 'pending').length;
+        const isActive = activeFilter === p;
+        mh += '<div class="mobile-topbar-item' + (isActive ? ' active' : '') + '" onclick="setFilter(\'' + esc(p) + '\')">';
+        mh += esc(p);
+        if (pendingSugs > 0) mh += ' <span class="sidebar-badge">' + pendingSugs + '</span>';
+        mh += '</div>';
+      }
+      document.getElementById('mobile-topbar').innerHTML = mh;
     }
 
     function renderCard(t, sessions) {
@@ -744,37 +1056,58 @@
         const suggestions = sugr.ok ? await sugr.json() : {};
         const dash = document.getElementById('dashboard');
 
-        if (!tasks.length) {
-          closeAllTmux();
-          dash.innerHTML = '<div class="empty">No tasks found in ~/Tasks</div>';
-          return;
-        }
-
+        // Group tasks by project
         const groups = {};
         for (const t of tasks) {
           const p = deriveProject(t.task);
           (groups[p] = groups[p] || []).push(t);
         }
 
+        // Merge suggestion-only projects into groups (empty task arrays)
+        for (const key of Object.keys(suggestions)) {
+          const upper = key.toUpperCase();
+          if (!groups[upper]) groups[upper] = [];
+        }
+
+        // Render sidebar
+        renderSidebar(groups, suggestions);
+
+        // Filter projects if a filter is active
+        const projectKeys = Object.keys(groups).sort();
+        const visibleProjects = activeFilter ? projectKeys.filter(p => p === activeFilter) : projectKeys;
+
+        if (!visibleProjects.length && !tasks.length) {
+          closeAllTmux();
+          dash.innerHTML = '<div class="empty">No tasks found in ~/Tasks</div>';
+          return;
+        }
+
         const needed = new Set();
         const results = [];
         let html = '';
 
-        for (const project of Object.keys(groups).sort()) {
-          html += '<div class="project-group">';
+        for (const project of visibleProjects) {
+          const projectTasks = groups[project] || [];
+          html += '<div class="project-group" id="project-' + esc(project) + '">';
           html += '<div class="project-header">' + esc(project) + '</div>';
-          html += '<div class="task-list">';
-          for (const t of groups[project]) {
-            const r = renderCard(t, sessions);
-            html += r.html;
-            results.push(r);
-            if (r.live) needed.add(r.live);
+          if (projectTasks.length) {
+            html += '<div class="task-list">';
+            for (const t of projectTasks) {
+              const r = renderCard(t, sessions);
+              html += r.html;
+              results.push(r);
+              if (r.live) needed.add(r.live);
+            }
+            html += '</div>';
           }
-          html += '</div>';
           const projKey = project.toLowerCase();
           const projSuggestions = suggestions[projKey] || [];
           html += renderSuggestions(projKey, projSuggestions);
           html += '</div>';
+        }
+
+        if (!html) {
+          html = '<div class="empty">No projects match the filter</div>';
         }
 
         for (const k of Object.keys(activeTmux)) {
