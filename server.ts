@@ -15,6 +15,8 @@ interface TaskInfo {
   originalTask?: string;
   howToTest?: string[];
   screenshot?: string;
+  figmaUrl?: string;
+  figmaScreenshot?: string;
   completedAt?: string;
   agentLogTail?: string[];
   devServerStatus?: number | null;
@@ -85,6 +87,26 @@ async function getTaskInfo(taskName: string): Promise<TaskInfo> {
     info.screenshot = "screenshot.png";
   }
 
+  // Detect figmaUrl from agent.log or STATUS.md if not in task.json
+  if (!info.figmaUrl) {
+    const figmaRegex = /https:\/\/www\.figma\.com\/[^\s)>"']*/;
+    const sources = [agentLog, await readFileSafe(join(taskDir, "STATUS.md"))];
+    for (const src of sources) {
+      if (src) {
+        const match = src.match(figmaRegex);
+        if (match) {
+          info.figmaUrl = match[0];
+          break;
+        }
+      }
+    }
+  }
+
+  // Check for figma screenshot
+  if (await fileExists(join(taskDir, "figma-screenshot.png"))) {
+    info.figmaScreenshot = "figma-screenshot.png";
+  }
+
   // Ping devPort
   if (info.devPort) {
     info.devServerStatus = await pingPort(info.devPort);
@@ -105,6 +127,17 @@ async function getAllTasks(): Promise<TaskInfo[]> {
 
 async function serveScreenshot(taskName: string): Promise<Response> {
   const filePath = join(TASKS_DIR, taskName, "screenshot.png");
+  if (await fileExists(filePath)) {
+    const file = Bun.file(filePath);
+    return new Response(file, {
+      headers: { "Content-Type": "image/png" },
+    });
+  }
+  return new Response("Not found", { status: 404 });
+}
+
+async function serveFigmaScreenshot(taskName: string): Promise<Response> {
+  const filePath = join(TASKS_DIR, taskName, "figma-screenshot.png");
   if (await fileExists(filePath)) {
     const file = Bun.file(filePath);
     return new Response(file, {
@@ -135,6 +168,11 @@ const server = Bun.serve({
     if (url.pathname.startsWith("/screenshots/")) {
       const taskName = url.pathname.replace("/screenshots/", "");
       return serveScreenshot(taskName);
+    }
+
+    if (url.pathname.startsWith("/figma-screenshots/")) {
+      const taskName = url.pathname.replace("/figma-screenshots/", "");
+      return serveFigmaScreenshot(taskName);
     }
 
     if (url.pathname === "/") {

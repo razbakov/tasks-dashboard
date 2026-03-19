@@ -149,6 +149,39 @@
       text-decoration: underline;
     }
 
+    .screenshots-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .screenshot-container {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .screenshot-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      width: fit-content;
+    }
+
+    .screenshot-label-app {
+      background: #1e1b4b;
+      color: #a5b4fc;
+    }
+
+    .screenshot-label-figma {
+      background: #3b1249;
+      color: #e879f9;
+    }
+
     .screenshot-thumb {
       cursor: pointer;
       border-radius: 8px;
@@ -339,10 +372,23 @@
       if (t.url) html += `<a class="url-link" href="${escapeHtml(t.url)}" target="_blank">${escapeHtml(t.url)}</a>`;
       html += `</div>`;
 
-      // 3. Screenshot
-      if (t.screenshot) {
-        html += `<div class="screenshot-thumb" onclick="showScreenshot('${escapeHtml(t.task)}')">`;
-        html += `<img src="/screenshots/${encodeURIComponent(t.task)}" alt="Screenshot" loading="lazy">`;
+      // 3. Screenshots
+      if (t.screenshot || t.figmaScreenshot) {
+        html += `<div class="screenshots-row">`;
+        if (t.figmaScreenshot) {
+          html += `<div class="screenshot-container">`;
+          html += `<span class="screenshot-label screenshot-label-figma">Figma</span>`;
+          html += `<div class="screenshot-thumb" onclick="showScreenshot('/figma-screenshots/${encodeURIComponent(t.task)}')">`;
+          html += `<img src="/figma-screenshots/${encodeURIComponent(t.task)}" alt="Figma Screenshot" loading="lazy">`;
+          html += `</div></div>`;
+        }
+        if (t.screenshot) {
+          html += `<div class="screenshot-container">`;
+          if (t.figmaScreenshot) html += `<span class="screenshot-label screenshot-label-app">App</span>`;
+          html += `<div class="screenshot-thumb" onclick="showScreenshot('/screenshots/${encodeURIComponent(t.task)}')">`;
+          html += `<img src="/screenshots/${encodeURIComponent(t.task)}" alt="Screenshot" loading="lazy">`;
+          html += `</div></div>`;
+        }
         html += `</div>`;
       }
 
@@ -380,10 +426,10 @@
       return html;
     }
 
-    function showScreenshot(task) {
+    function showScreenshot(src) {
       const overlay = document.getElementById('overlay');
       const img = document.getElementById('overlay-img');
-      img.src = `/screenshots/${encodeURIComponent(task)}`;
+      img.src = src;
       overlay.classList.add('active');
     }
 
