@@ -252,11 +252,18 @@ type SuggestionsData = Record<string, Suggestion[]>;
 
 async function readSuggestions(): Promise<SuggestionsData> {
   const raw = await readFileSafe(SUGGESTIONS_FILE);
-  if (!raw) return {};
+  if (!raw) return { dashboard: [] };
   try {
-    return JSON.parse(raw);
+    const data = JSON.parse(raw) as SuggestionsData;
+    // Map 'general' suggestions to 'dashboard' project
+    if (data.general) {
+      data.dashboard = [...(data.dashboard || []), ...data.general];
+      delete data.general;
+    }
+    if (!data.dashboard) data.dashboard = [];
+    return data;
   } catch {
-    return {};
+    return { dashboard: [] };
   }
 }
 

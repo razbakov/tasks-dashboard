@@ -498,7 +498,7 @@
 
     /* Suggestions */
     .suggestions-panel {
-      margin-top: 16px;
+      margin-bottom: 16px;
       border: 1px solid #e5e5e5;
       border-radius: 10px;
       background: #fff;
@@ -1090,6 +1090,9 @@
           const projectTasks = groups[project] || [];
           html += '<div class="project-group" id="project-' + esc(project) + '">';
           html += '<div class="project-header">' + esc(project) + '</div>';
+          const projKey = project.toLowerCase();
+          const projSuggestions = suggestions[projKey] || [];
+          html += renderSuggestions(projKey, projSuggestions);
           if (projectTasks.length) {
             html += '<div class="task-list">';
             for (const t of projectTasks) {
@@ -1100,9 +1103,6 @@
             }
             html += '</div>';
           }
-          const projKey = project.toLowerCase();
-          const projSuggestions = suggestions[projKey] || [];
-          html += renderSuggestions(projKey, projSuggestions);
           html += '</div>';
         }
 
