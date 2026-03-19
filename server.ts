@@ -73,11 +73,11 @@ async function getTaskInfo(taskName: string): Promise<TaskInfo> {
     }
   }
 
-  // Read last 5 lines of agent.log
+  // Read full agent.log
   const agentLog = await readFileSafe(join(taskDir, "agent.log"));
   if (agentLog) {
     const lines = agentLog.trim().split("\n");
-    info.agentLogTail = lines.slice(-5);
+    info.agentLogTail = lines;
   }
 
   // Check for screenshot
