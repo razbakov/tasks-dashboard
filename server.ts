@@ -1,7 +1,8 @@
-import { readdir, readFile, writeFile, stat } from "fs/promises";
+import { readdir, readFile, writeFile, stat, mkdir } from "fs/promises";
 import { join } from "path";
 import { homedir } from "os";
 import { spawn } from "child_process";
+import { existsSync } from "fs";
 
 const TASKS_DIR = join(homedir(), "Tasks");
 const SUGGESTIONS_FILE = join(TASKS_DIR, "suggestions.json");
@@ -69,6 +70,91 @@ function runCommand(cmd: string, args: string[]): Promise<string> {
   });
 }
 
+function truncateStr(s: string, maxLen: number): string {
+  return s.length <= maxLen ? s : s.substring(0, maxLen) + "...";
+}
+
+function toolInputSummary(
+  name: string,
+  input: Record<string, unknown>
+): string {
+  if (!input) return "";
+  switch (name) {
+    case "Bash":
+      return truncateStr(String(input.command || ""), 80);
+    case "Read":
+    case "Edit":
+    case "Write":
+      return String(input.file_path || "");
+    case "Grep":
+      return `/${input.pattern || ""}/ in ${input.path || "."}`;
+    case "Glob":
+      return String(input.pattern || "");
+    case "Agent":
+      return String(input.description || "");
+    case "TodoWrite":
+      return `${(Array.isArray(input.todos) ? input.todos : []).length} tasks`;
+    default:
+      return truncateStr(JSON.stringify(input), 60);
+  }
+}
+
+function parseAgentLog(raw: string): string {
+  const lines = raw.split("\n");
+  const output: string[] = [];
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+
+    let obj: Record<string, unknown>;
+    try {
+      obj = JSON.parse(trimmed);
+    } catch {
+      output.push(trimmed);
+      continue;
+    }
+
+    if (obj.type === "assistant") {
+      const msg = obj.message as Record<string, unknown> | undefined;
+      const content = msg?.content as
+        | Array<Record<string, unknown>>
+        | undefined;
+      if (!content) continue;
+      for (const block of content) {
+        if (block.type === "text" && block.text) {
+          const text = String(block.text).trim();
+          if (text) output.push(text);
+        } else if (block.type === "tool_use") {
+          const name = String(block.name || "Unknown");
+          const summary = toolInputSummary(
+            name,
+            block.input as Record<string, unknown>
+          );
+          output.push(`\u{1F527} ${name}: ${summary}`);
+        }
+      }
+    } else if (obj.type === "user") {
+      const msg = obj.message as Record<string, unknown> | undefined;
+      const content = msg?.content as
+        | Array<Record<string, unknown>>
+        | undefined;
+      if (!content) continue;
+      for (const block of content) {
+        if (block.type === "tool_result") {
+          if (block.is_error) {
+            output.push("\u274C Error");
+          } else {
+            output.push("\u2705 Done");
+          }
+        }
+      }
+    }
+  }
+
+  return output.join("\n");
+}
+
 async function getTaskInfo(taskName: string): Promise<TaskInfo> {
   const taskDir = join(TASKS_DIR, taskName);
   const info: TaskInfo = { task: taskName };
@@ -79,6 +165,8 @@ async function getTaskInfo(taskName: string): Promise<TaskInfo> {
       Object.assign(info, JSON.parse(taskJsonStr));
     } catch {}
   }
+  // Always use directory name for task (task.json may override with a description)
+  info.task = taskName;
 
   if (!info.summary) {
     const statusMd = await readFileSafe(join(taskDir, "STATUS.md"));
@@ -90,7 +178,7 @@ async function getTaskInfo(taskName: string): Promise<TaskInfo> {
 
   const agentLogContent = await readFileSafe(join(taskDir, "agent.log"));
   if (agentLogContent) {
-    info.agentLog = agentLogContent.trim();
+    info.agentLog = parseAgentLog(agentLogContent);
   }
 
   if (await fileExists(join(taskDir, "screenshot.png"))) {
@@ -361,6 +449,94 @@ const server = Bun.serve({
       item.status = body.status as Suggestion["status"];
       await writeSuggestions(data);
       return Response.json(item);
+    }
+
+    if (req.method === "POST" && url.pathname === "/api/spawn-agent") {
+      try {
+        const body = (await req.json()) as {
+          project: string;
+          id: string;
+          title: string;
+          description: string;
+        };
+        if (!body.project || !body.title) {
+          return new Response("Missing project or title", { status: 400 });
+        }
+
+        const slugified = body.title
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "")
+          .slice(0, 20)
+          .replace(/-$/, "");
+        const projectDir = join(homedir(), "Projects", body.project);
+        const worktreePath = join(homedir(), "Tasks", `${body.project}-${slugified}`);
+        const sessionName = `wf-${slugified}`;
+
+        // Ensure ~/Tasks exists
+        if (!existsSync(join(homedir(), "Tasks"))) {
+          await mkdir(join(homedir(), "Tasks"), { recursive: true });
+        }
+
+        // Create worktree
+        await runCommand("git", [
+          "-C",
+          projectDir,
+          "worktree",
+          "add",
+          worktreePath,
+          "-b",
+          `agent/${slugified}`,
+          "main",
+        ]);
+
+        // Install deps if src/package.json exists
+        const srcDir = join(worktreePath, "src");
+        if (existsSync(join(srcDir, "package.json"))) {
+          await runCommand("bun", [
+            "install",
+            "--frozen-lockfile",
+            `--cwd=${srcDir}`,
+          ]);
+        }
+
+        // Write wrapper script
+        const scriptPath = `/tmp/run-${body.project}-${slugified}.sh`;
+        const prompt = `${body.title}\n\n${body.description}`.replace(
+          /'/g,
+          "'\\''"
+        );
+        const scriptContent = `#!/bin/bash
+cd "${worktreePath}/src" 2>/dev/null || cd "${worktreePath}"
+claude --dangerously-skip-permissions -p '${prompt}'
+echo "\\n--- Agent finished. Press Enter to close ---"
+read
+`;
+        await writeFile(scriptPath, scriptContent, { mode: 0o755 });
+
+        // Start tmux session
+        await runCommand("tmux", [
+          "new-session",
+          "-d",
+          "-s",
+          sessionName,
+          "-c",
+          existsSync(srcDir) ? srcDir : worktreePath,
+          `bash ${scriptPath}`,
+        ]);
+
+        return Response.json({
+          success: true,
+          session: sessionName,
+          worktree: worktreePath,
+        });
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        return Response.json(
+          { success: false, error: message },
+          { status: 500 }
+        );
+      }
     }
 
     if (url.pathname === "/") {

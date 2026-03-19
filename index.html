@@ -680,6 +680,39 @@
       border-radius: 6px;
       cursor: pointer;
     }
+
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #111;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 200;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.2s, transform 0.2s;
+      pointer-events: none;
+    }
+
+    .toast.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toast.error { background: #dc2626; }
+
+    .suggestion-spawning {
+      font-size: 12px;
+      font-weight: 600;
+      color: #059669;
+      white-space: nowrap;
+      margin-top: 2px;
+    }
   </style>
 </head>
 <body>
@@ -700,10 +733,33 @@
   <div class="overlay" id="overlay" onclick="this.classList.remove('active')">
     <img id="overlay-img" src="" alt="">
   </div>
+  <div class="toast" id="toast"></div>
 
   <script>
     const activeTmux = {};
     let activeFilter = null; // null = all projects
+    let refreshTimer = null;
+    let formOpen = false;
+
+    function showToast(msg, isError) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = 'toast' + (isError ? ' error' : '');
+      // Force reflow for animation
+      void el.offsetWidth;
+      el.classList.add('visible');
+      setTimeout(() => el.classList.remove('visible'), 3000);
+    }
+
+    function pauseAutoRefresh() {
+      formOpen = true;
+      if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
+    }
+
+    function resumeAutoRefresh() {
+      formOpen = false;
+      if (!refreshTimer) refreshTimer = setInterval(refresh, 5000);
+    }
 
     function esc(str) {
       const el = document.createElement('div');
@@ -736,16 +792,41 @@
       document.getElementById('overlay').classList.add('active');
     }
 
-    async function updateSuggestion(project, id, status) {
+    async function updateSuggestion(project, id, status, title, description) {
       try {
         await fetch('/api/suggestions/' + encodeURIComponent(project) + '/' + encodeURIComponent(id), {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status: status })
         });
+
+        if (status === 'approved') {
+          // Update UI immediately to show spawning state
+          const btn = event.target;
+          const actions = btn.closest('.suggestion-actions');
+          if (actions) actions.innerHTML = '<div class="suggestion-spawning">Spawning...</div>';
+
+          try {
+            const res = await fetch('/api/spawn-agent', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ project, id, title: title || '', description: description || '' })
+            });
+            const data = await res.json();
+            if (data.success) {
+              showToast('Agent spawned: ' + data.session);
+            } else {
+              showToast('Spawn failed: ' + (data.error || 'unknown'), true);
+            }
+          } catch (err) {
+            showToast('Spawn error: ' + err.message, true);
+          }
+        }
+
         refresh();
       } catch (err) {
         console.error('Failed to update suggestion:', err);
+        showToast('Failed to update suggestion', true);
       }
     }
 
@@ -753,6 +834,8 @@
       const form = btn.nextElementSibling;
       const isOpen = form.classList.toggle('open');
       btn.style.display = isOpen ? 'none' : '';
+      if (isOpen) pauseAutoRefresh();
+      else resumeAutoRefresh();
     }
 
     async function submitSuggestion(project, formEl) {
@@ -770,6 +853,7 @@
         formEl.classList.remove('open');
         const btn = formEl.previousElementSibling;
         if (btn) btn.style.display = '';
+        resumeAutoRefresh();
         refresh();
       } catch (err) {
         console.error('Failed to add suggestion:', err);
@@ -780,6 +864,7 @@
       formEl.classList.remove('open');
       const btn = formEl.previousElementSibling;
       if (btn) btn.style.display = '';
+      resumeAutoRefresh();
     }
 
     function renderSuggestions(project, suggestions) {
@@ -803,10 +888,10 @@
           if (s.description) h += '<div class="suggestion-desc">' + esc(s.description) + '</div>';
           h += '</div>';
           if (s.status === 'approved') {
-            h += '<div class="suggestion-queued">Queued</div>';
+            h += '<div class="suggestion-spawning">Running</div>';
           } else if (s.status === 'pending') {
             h += '<div class="suggestion-actions">';
-            h += '<button class="btn-approve" onclick="updateSuggestion(\'' + esc(project) + '\',\'' + esc(s.id) + '\',\'approved\')">Approve</button>';
+            h += '<button class="btn-approve" onclick="updateSuggestion(\'' + esc(project) + '\',\'' + esc(s.id) + '\',\'approved\',\'' + esc(s.title).replace(/'/g, "\\'") + '\',\'' + esc(s.description).replace(/'/g, "\\'") + '\')">Approve</button>';
             h += '<button class="btn-reject" onclick="updateSuggestion(\'' + esc(project) + '\',\'' + esc(s.id) + '\',\'rejected\')">Reject</button>';
             h += '</div>';
           }
@@ -1125,7 +1210,7 @@
     }
 
     refresh();
-    setInterval(refresh, 5000);
+    refreshTimer = setInterval(refresh, 5000);
   </script>
 </body>
 </html>
