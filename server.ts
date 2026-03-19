@@ -1,9 +1,10 @@
-import { readdir, readFile, stat } from "fs/promises";
+import { readdir, readFile, writeFile, stat } from "fs/promises";
 import { join } from "path";
 import { homedir } from "os";
 import { spawn } from "child_process";
 
 const TASKS_DIR = join(homedir(), "Tasks");
+const SUGGESTIONS_FILE = join(TASKS_DIR, "suggestions.json");
 const PORT = 4000;
 
 interface TaskInfo {
@@ -237,6 +238,32 @@ function streamTmuxSession(session: string): Response {
   });
 }
 
+interface Suggestion {
+  id: string;
+  title: string;
+  description: string;
+  status: "pending" | "approved" | "rejected";
+  priority: "high" | "medium" | "low";
+  suggestedBy: string;
+  createdAt: string;
+}
+
+type SuggestionsData = Record<string, Suggestion[]>;
+
+async function readSuggestions(): Promise<SuggestionsData> {
+  const raw = await readFileSafe(SUGGESTIONS_FILE);
+  if (!raw) return {};
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return {};
+  }
+}
+
+async function writeSuggestions(data: SuggestionsData): Promise<void> {
+  await writeFile(SUGGESTIONS_FILE, JSON.stringify(data, null, 2));
+}
+
 const server = Bun.serve({
   port: PORT,
   async fetch(req) {
@@ -283,6 +310,50 @@ const server = Bun.serve({
         url.pathname.replace("/figma-screenshots/", "")
       );
       return serveFigmaScreenshot(taskName);
+    }
+
+    if (url.pathname === "/api/suggestions") {
+      const data = await readSuggestions();
+      return Response.json(data);
+    }
+
+    if (req.method === "POST" && url.pathname.startsWith("/api/suggestions/")) {
+      const project = decodeURIComponent(url.pathname.replace("/api/suggestions/", ""));
+      if (!project) return new Response("Missing project", { status: 400 });
+      const body = await req.json() as { title?: string; description?: string; priority?: string };
+      if (!body.title) return new Response("Missing title", { status: 400 });
+      const data = await readSuggestions();
+      if (!data[project]) data[project] = [];
+      const suggestion: Suggestion = {
+        id: `${project}-${Date.now()}`,
+        title: body.title,
+        description: body.description || "",
+        status: "pending",
+        priority: (body.priority as Suggestion["priority"]) || "medium",
+        suggestedBy: "claw",
+        createdAt: new Date().toISOString(),
+      };
+      data[project].push(suggestion);
+      await writeSuggestions(data);
+      return Response.json(suggestion, { status: 201 });
+    }
+
+    if (req.method === "PATCH" && url.pathname.match(/^\/api\/suggestions\/[^/]+\/[^/]+$/)) {
+      const parts = url.pathname.replace("/api/suggestions/", "").split("/");
+      const project = decodeURIComponent(parts[0]);
+      const id = decodeURIComponent(parts[1]);
+      const body = await req.json() as { status?: string };
+      if (!body.status || !["approved", "rejected"].includes(body.status)) {
+        return new Response("Invalid status", { status: 400 });
+      }
+      const data = await readSuggestions();
+      const list = data[project];
+      if (!list) return new Response("Project not found", { status: 404 });
+      const item = list.find((s) => s.id === id);
+      if (!item) return new Response("Suggestion not found", { status: 404 });
+      item.status = body.status as Suggestion["status"];
+      await writeSuggestions(data);
+      return Response.json(item);
     }
 
     if (url.pathname === "/") {

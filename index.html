@@ -368,6 +368,111 @@
       color: #999;
       font-size: 16px;
     }
+
+    /* Suggestions */
+    .suggestions-panel {
+      margin-top: 16px;
+      border: 1px solid #e5e5e5;
+      border-radius: 10px;
+      background: #fff;
+      overflow: hidden;
+    }
+
+    .suggestions-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      cursor: pointer;
+      user-select: none;
+      background: #fafafa;
+      border-bottom: 1px solid #e5e5e5;
+    }
+
+    .suggestions-header .section-title {
+      margin-bottom: 0;
+      font-size: 14px;
+    }
+
+    .suggestions-body { display: block; }
+    .suggestions-body.collapsed { display: none; }
+
+    .suggestion-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 20px;
+      border-bottom: 1px solid #f0f0f0;
+      transition: opacity 0.3s;
+    }
+
+    .suggestion-row:last-child { border-bottom: none; }
+    .suggestion-row.rejected { opacity: 0.35; }
+
+    .priority-badge {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border-radius: 4px;
+      white-space: nowrap;
+      margin-top: 2px;
+    }
+
+    .priority-high { background: #fef2f2; color: #dc2626; }
+    .priority-medium { background: #fffbeb; color: #d97706; }
+    .priority-low { background: #f4f4f5; color: #71717a; }
+
+    .suggestion-content { flex: 1; min-width: 0; }
+
+    .suggestion-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #222;
+    }
+
+    .suggestion-desc {
+      font-size: 13px;
+      color: #666;
+      margin-top: 2px;
+      line-height: 1.4;
+    }
+
+    .suggestion-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .suggestion-actions button {
+      border: none;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.15s;
+    }
+
+    .btn-approve { background: #ecfdf5; color: #059669; }
+    .btn-approve:hover { background: #d1fae5; }
+    .btn-reject { background: #fef2f2; color: #dc2626; }
+    .btn-reject:hover { background: #fee2e2; }
+
+    .suggestion-queued {
+      font-size: 12px;
+      font-weight: 600;
+      color: #d97706;
+      white-space: nowrap;
+      margin-top: 2px;
+    }
+
+    .suggestions-empty {
+      padding: 12px 20px;
+      font-size: 13px;
+      color: #aaa;
+    }
   </style>
 </head>
 <body>
@@ -412,6 +517,60 @@
     function showScreenshot(src) {
       document.getElementById('overlay-img').src = src;
       document.getElementById('overlay').classList.add('active');
+    }
+
+    async function updateSuggestion(project, id, status) {
+      try {
+        await fetch('/api/suggestions/' + encodeURIComponent(project) + '/' + encodeURIComponent(id), {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: status })
+        });
+        refresh();
+      } catch (err) {
+        console.error('Failed to update suggestion:', err);
+      }
+    }
+
+    function renderSuggestions(project, suggestions) {
+      const items = (suggestions || []);
+      let h = '<div class="suggestions-panel">';
+      h += '<div class="suggestions-header" onclick="toggleSuggestions(this)">';
+      h += '<span class="toggle-icon">\u25BC</span>';
+      h += '<div class="section-title">Suggested Tasks (' + items.length + ')</div>';
+      h += '</div>';
+      h += '<div class="suggestions-body">';
+      if (!items.length) {
+        h += '<div class="suggestions-empty">No suggestions</div>';
+      } else {
+        for (const s of items) {
+          const cls = s.status === 'rejected' ? ' rejected' : '';
+          h += '<div class="suggestion-row' + cls + '">';
+          h += '<span class="priority-badge priority-' + esc(s.priority) + '">' + esc(s.priority) + '</span>';
+          h += '<div class="suggestion-content">';
+          h += '<div class="suggestion-title">' + esc(s.title) + '</div>';
+          if (s.description) h += '<div class="suggestion-desc">' + esc(s.description) + '</div>';
+          h += '</div>';
+          if (s.status === 'approved') {
+            h += '<div class="suggestion-queued">Queued</div>';
+          } else if (s.status === 'pending') {
+            h += '<div class="suggestion-actions">';
+            h += '<button class="btn-approve" onclick="updateSuggestion(\'' + esc(project) + '\',\'' + esc(s.id) + '\',\'approved\')">Approve</button>';
+            h += '<button class="btn-reject" onclick="updateSuggestion(\'' + esc(project) + '\',\'' + esc(s.id) + '\',\'rejected\')">Reject</button>';
+            h += '</div>';
+          }
+          h += '</div>';
+        }
+      }
+      h += '</div></div>';
+      return h;
+    }
+
+    function toggleSuggestions(btn) {
+      const body = btn.nextElementSibling;
+      const icon = btn.querySelector('.toggle-icon');
+      const isCollapsed = body.classList.toggle('collapsed');
+      icon.textContent = isCollapsed ? '\u25B6' : '\u25BC';
     }
 
     function toggleCollapsible(btn) {
@@ -575,12 +734,14 @@
 
     async function refresh() {
       try {
-        const [tr, sr] = await Promise.all([
+        const [tr, sr, sugr] = await Promise.all([
           fetch('/api/tasks'),
-          fetch('/api/tmux-sessions')
+          fetch('/api/tmux-sessions'),
+          fetch('/api/suggestions')
         ]);
         const tasks = tr.ok ? await tr.json() : [];
         const sessions = sr.ok ? await sr.json() : [];
+        const suggestions = sugr.ok ? await sugr.json() : {};
         const dash = document.getElementById('dashboard');
 
         if (!tasks.length) {
@@ -609,7 +770,11 @@
             results.push(r);
             if (r.live) needed.add(r.live);
           }
-          html += '</div></div>';
+          html += '</div>';
+          const projKey = project.toLowerCase();
+          const projSuggestions = suggestions[projKey] || [];
+          html += renderSuggestions(projKey, projSuggestions);
+          html += '</div>';
         }
 
         for (const k of Object.keys(activeTmux)) {
