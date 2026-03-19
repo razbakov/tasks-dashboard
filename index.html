@@ -9,165 +9,102 @@
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
-      background: #f8f8f8;
+      background: #f5f5f5;
       color: #111;
       min-height: 100vh;
+      font-size: 16px;
       -webkit-font-smoothing: antialiased;
     }
 
     header {
-      padding: 28px 48px 20px;
+      padding: 24px 24px 20px;
       display: flex;
       align-items: baseline;
-      justify-content: space-between;
+      justify-content: center;
+      gap: 16px;
       border-bottom: 1px solid #e5e5e5;
       background: #fff;
     }
 
     header h1 {
-      font-size: 17px;
-      font-weight: 600;
+      font-size: 20px;
+      font-weight: 700;
       color: #c92128;
       letter-spacing: -0.3px;
     }
 
     .refresh-info {
-      font-size: 11px;
-      color: #aaa;
+      font-size: 14px;
+      color: #999;
     }
 
     .dashboard {
-      padding: 28px 48px 64px;
-      max-width: 1600px;
+      padding: 32px 16px 64px;
+      max-width: 660px;
       margin: 0 auto;
     }
 
     /* Project groups */
-    .project-group { margin-bottom: 36px; }
+    .project-group { margin-bottom: 32px; }
 
     .project-header {
-      font-size: 11px;
+      font-size: 14px;
       font-weight: 700;
       color: #c92128;
       text-transform: uppercase;
       letter-spacing: 1.5px;
-      margin-bottom: 10px;
-      padding-bottom: 6px;
-      border-bottom: 2px solid #eee;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #e5e5e5;
     }
 
     .task-list {
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 16px;
     }
 
-    /* Card row */
+    /* Card - vertical stack */
     .card {
       background: #fff;
-      border: 1px solid #e5e5e5;
-      border-radius: 8px;
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
       display: flex;
-      flex-direction: row;
+      flex-direction: column;
       overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
       transition: border-color 0.15s, box-shadow 0.15s;
     }
 
     .card:hover {
-      border-color: #d0d0d0;
-      box-shadow: 0 1px 8px rgba(0,0,0,0.04);
+      border-color: #ccc;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
     }
 
-    /* Left: screenshots */
-    .card-left {
-      width: 280px;
-      min-width: 280px;
-      padding: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      border-right: 1px solid #f0f0f0;
-      background: #fafafa;
-    }
-
-    .screenshot-wrap {
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
-
-    .screenshot-badge {
-      font-size: 9px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      padding: 1px 7px;
-      border-radius: 3px;
-      width: fit-content;
-    }
-
-    .screenshot-badge-app { background: #eef2ff; color: #4f46e5; }
-    .screenshot-badge-figma { background: #fdf2f8; color: #db2777; }
-
-    .screenshot-thumb {
-      cursor: pointer;
-      border-radius: 5px;
-      overflow: hidden;
-      border: 1px solid #e5e5e5;
-      transition: border-color 0.15s;
-    }
-
-    .screenshot-thumb:hover { border-color: #bbb; }
-    .screenshot-thumb img { width: 100%; display: block; }
-
-    .no-screenshots {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #ccc;
-      font-size: 11px;
-    }
-
-    /* Middle: content */
-    .card-middle {
-      flex: 1;
-      min-width: 0;
-      padding: 14px 18px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .title-row {
+    /* Header row */
+    .card-header {
+      padding: 20px 24px 16px;
       display: flex;
       align-items: baseline;
-      gap: 8px;
+      gap: 10px;
       flex-wrap: wrap;
     }
 
     .task-name {
-      font-size: 13px;
-      font-weight: 600;
+      font-size: 20px;
+      font-weight: 700;
       color: #111;
     }
 
     .branch {
-      font-size: 11px;
-      color: #aaa;
+      font-size: 14px;
+      color: #999;
       font-family: 'SF Mono', 'Fira Code', Menlo, monospace;
     }
 
-    .meta-row {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-
     .badge {
-      font-size: 10px;
-      padding: 2px 9px;
+      font-size: 12px;
+      padding: 3px 10px;
       border-radius: 99px;
       font-weight: 600;
       white-space: nowrap;
@@ -185,47 +122,58 @@
     .url-link {
       color: #c92128;
       text-decoration: none;
-      font-size: 11px;
+      font-size: 14px;
       font-family: 'SF Mono', 'Fira Code', Menlo, monospace;
     }
 
     .url-link:hover { text-decoration: underline; }
 
+    /* Card body sections */
+    .card-body {
+      padding: 0 24px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
     .summary-text {
-      font-size: 14px;
-      font-weight: 600;
-      color: #111;
-      line-height: 1.4;
-      white-space: pre-line;
+      font-size: 16px;
+      font-weight: 500;
+      color: #222;
+      line-height: 1.5;
     }
 
-    .original-task {
-      font-size: 13px;
-      color: #777;
-      line-height: 1.55;
+    .section-divider {
+      border: none;
+      border-top: 1px solid #f0f0f0;
+      margin: 0;
+    }
+
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #c92128;
+      margin-bottom: 6px;
+    }
+
+    .section-content {
+      font-size: 15px;
+      color: #444;
+      line-height: 1.6;
       white-space: pre-wrap;
-    }
-
-    .section-label {
-      font-size: 10px;
-      text-transform: uppercase;
-      color: #aaa;
-      letter-spacing: 0.5px;
-      font-weight: 600;
-      margin-top: 2px;
     }
 
     .checklist {
       list-style: none;
-      font-size: 12px;
+      font-size: 15px;
       display: flex;
       flex-direction: column;
-      gap: 2px;
+      gap: 6px;
     }
 
     .checklist li {
-      color: #555;
-      padding-left: 12px;
+      color: #444;
+      padding-left: 18px;
       position: relative;
       line-height: 1.5;
     }
@@ -234,65 +182,82 @@
       content: "";
       position: absolute;
       left: 0;
-      top: 7px;
-      width: 4px;
-      height: 4px;
+      top: 9px;
+      width: 6px;
+      height: 6px;
       border-radius: 50%;
-      background: #ccc;
+      background: #c92128;
     }
 
-    /* Right: log + tmux */
-    .card-right {
-      width: 340px;
-      min-width: 340px;
-      padding: 14px;
+    /* Collapsible sections */
+    .collapsible-header {
       display: flex;
-      flex-direction: column;
-      gap: 6px;
-      border-left: 1px solid #f0f0f0;
-      background: #fafafa;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .collapsible-header .section-title {
+      margin-bottom: 0;
+    }
+
+    .toggle-icon {
+      font-size: 14px;
+      color: #999;
+      width: 16px;
+      transition: transform 0.15s;
+    }
+
+    .collapsible-body {
+      display: none;
+      margin-top: 8px;
+    }
+
+    .collapsible-body.open {
+      display: block;
     }
 
     .agent-log {
-      background: #f3f3f3;
+      background: #f7f7f7;
       border: 1px solid #e5e5e5;
-      border-radius: 5px;
-      padding: 8px 10px;
+      border-radius: 6px;
+      padding: 12px 14px;
       font-family: 'SF Mono', 'Fira Code', Menlo, monospace;
-      font-size: 10px;
+      font-size: 13px;
       color: #555;
-      line-height: 1.55;
-      max-height: 300px;
+      line-height: 1.6;
+      max-height: 400px;
       overflow-y: auto;
       white-space: pre;
-      flex: 1;
     }
 
-    .agent-log::-webkit-scrollbar { width: 4px; }
+    .agent-log::-webkit-scrollbar { width: 5px; }
     .agent-log::-webkit-scrollbar-track { background: transparent; }
-    .agent-log::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
+    .agent-log::-webkit-scrollbar-thumb { background: #ddd; border-radius: 3px; }
 
+    /* Tmux / Live Output */
     .tmux-section {
       border: 1px solid #e5e5e5;
-      border-radius: 5px;
+      border-radius: 6px;
       overflow: hidden;
     }
 
     .tmux-header {
       display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 5px 10px;
+      gap: 8px;
+      padding: 8px 14px;
       background: #f7f7f7;
       border-bottom: 1px solid #e5e5e5;
-      font-size: 10px;
+      font-size: 13px;
       color: #666;
       font-weight: 500;
     }
 
     .live-dot {
-      width: 7px;
-      height: 7px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
       background: #22c55e;
       animation: pulse 2s ease-in-out infinite;
@@ -304,29 +269,75 @@
     }
 
     .tmux-output {
-      background: #f3f3f3;
-      padding: 6px 10px;
+      background: #f7f7f7;
+      padding: 10px 14px;
       font-family: 'SF Mono', 'Fira Code', Menlo, monospace;
-      font-size: 10px;
+      font-size: 13px;
       color: #555;
       line-height: 1.5;
-      max-height: 180px;
+      max-height: 300px;
       overflow-y: auto;
       white-space: pre;
     }
 
     .tmux-ended {
-      padding: 5px 10px;
-      font-size: 10px;
+      padding: 8px 14px;
+      font-size: 14px;
       color: #aaa;
       text-align: center;
       background: #f7f7f7;
     }
 
+    /* Screenshots row */
+    .screenshots-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .screenshot-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1;
+      min-width: 120px;
+      max-width: 50%;
+    }
+
+    .screenshot-badge {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 2px 8px;
+      border-radius: 4px;
+      width: fit-content;
+    }
+
+    .screenshot-badge-app { background: #eef2ff; color: #4f46e5; }
+    .screenshot-badge-figma { background: #fdf2f8; color: #db2777; }
+
+    .screenshot-thumb {
+      cursor: pointer;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid #e5e5e5;
+      transition: border-color 0.15s;
+    }
+
+    .screenshot-thumb:hover { border-color: #bbb; }
+    .screenshot-thumb img { width: 100%; display: block; }
+
+    /* Timestamp */
+    .card-footer {
+      padding: 0 24px 16px;
+      display: flex;
+      justify-content: flex-end;
+    }
+
     .timestamp {
-      font-size: 10px;
-      color: #bbb;
-      margin-top: auto;
+      font-size: 14px;
+      color: #aaa;
     }
 
     /* Screenshot overlay */
@@ -354,33 +365,8 @@
     .empty {
       text-align: center;
       padding: 80px 24px;
-      color: #bbb;
-      font-size: 14px;
-    }
-
-    /* Responsive */
-    @media (max-width: 1200px) {
-      .card { flex-direction: column; }
-      .card-left {
-        width: 100%;
-        min-width: 0;
-        flex-direction: row;
-        border-right: none;
-        border-bottom: 1px solid #f0f0f0;
-      }
-      .card-left .screenshot-wrap { flex: 1; }
-      .card-right {
-        width: 100%;
-        min-width: 0;
-        border-left: none;
-        border-top: 1px solid #f0f0f0;
-      }
-      .agent-log { max-height: 200px; }
-    }
-
-    @media (max-width: 640px) {
-      header { padding: 16px; }
-      .dashboard { padding: 16px; }
+      color: #999;
+      font-size: 16px;
     }
   </style>
 </head>
@@ -428,11 +414,18 @@
       document.getElementById('overlay').classList.add('active');
     }
 
+    function toggleCollapsible(btn) {
+      const body = btn.nextElementSibling;
+      const icon = btn.querySelector('.toggle-icon');
+      const isOpen = body.classList.toggle('open');
+      icon.textContent = isOpen ? '\u25BC' : '\u25B6';
+    }
+
     function renderCard(t, sessions) {
       const enc = encodeURIComponent(t.task);
       const hasApp = !!t.screenshot;
       const hasFigma = !!t.figmaScreenshot;
-      const hasAny = hasApp || hasFigma;
+      const hasScreenshots = hasApp || hasFigma;
 
       const wf = 'wf-' + t.task;
       const dev = 'dev-' + t.task;
@@ -440,68 +433,107 @@
 
       let h = '<div class="card">';
 
-      // Left
-      h += '<div class="card-left">';
-      if (hasApp) {
-        h += '<div class="screenshot-wrap">';
-        if (hasFigma) h += '<span class="screenshot-badge screenshot-badge-app">App</span>';
-        h += '<div class="screenshot-thumb" onclick="showScreenshot(\'/screenshots/' + enc + '\')">';
-        h += '<img src="/screenshots/' + enc + '" alt="Screenshot" loading="lazy">';
-        h += '</div></div>';
-      }
-      if (hasFigma) {
-        h += '<div class="screenshot-wrap">';
-        h += '<span class="screenshot-badge screenshot-badge-figma">Figma</span>';
-        h += '<div class="screenshot-thumb" onclick="showScreenshot(\'/figma-screenshots/' + enc + '\')">';
-        h += '<img src="/figma-screenshots/' + enc + '" alt="Figma" loading="lazy">';
-        h += '</div></div>';
-      }
-      if (!hasAny) h += '<div class="no-screenshots">No screenshots</div>';
-      h += '</div>';
-
-      // Middle
-      h += '<div class="card-middle">';
-      h += '<div class="title-row">';
+      // Header row
+      h += '<div class="card-header">';
       h += '<span class="task-name">' + esc(t.task) + '</span>';
       if (t.branch) h += '<span class="branch">' + esc(t.branch) + '</span>';
-      h += '</div>';
-
-      h += '<div class="meta-row">';
       h += statusBadge(t.status);
       h += httpBadge(t.devPort, t.devServerStatus);
       if (t.url) h += '<a class="url-link" href="' + esc(t.url) + '" target="_blank">' + esc(t.url) + '</a>';
       h += '</div>';
 
-      if (t.summary) h += '<div class="summary-text">' + esc(t.summary) + '</div>';
-      if (t.originalTask) h += '<div class="original-task">' + esc(t.originalTask) + '</div>';
+      // Card body
+      h += '<div class="card-body">';
 
-      if (t.howToTest && t.howToTest.length) {
-        h += '<div class="section-label">How to test</div><ul class="checklist">';
-        for (const item of t.howToTest) h += '<li>' + esc(item) + '</li>';
-        h += '</ul>';
-      }
-      h += '</div>';
-
-      // Right
-      h += '<div class="card-right">';
-      if (t.agentLog) {
-        h += '<div class="section-label">Agent Log</div>';
-        h += '<div class="agent-log">' + esc(t.agentLog) + '</div>';
+      // Summary
+      if (t.summary) {
+        h += '<div class="summary-text">' + esc(t.summary) + '</div>';
       }
 
-      if (live) {
-        const tid = 'tmux-' + t.task;
-        h += '<div class="tmux-section">';
-        h += '<div class="tmux-header"><div class="live-dot"></div> Live &mdash; ' + esc(live) + '</div>';
-        h += '<div class="tmux-output" id="' + tid + '">Connecting...</div>';
+      // Original Task
+      if (t.originalTask) {
+        h += '<hr class="section-divider">';
+        h += '<div>';
+        h += '<div class="section-title">Original Task</div>';
+        h += '<div class="section-content">' + esc(t.originalTask) + '</div>';
         h += '</div>';
       }
 
-      if (t.completedAt) {
-        h += '<div class="timestamp">Completed ' + new Date(t.completedAt).toLocaleString() + '</div>';
+      // How to Test
+      if (t.howToTest && t.howToTest.length) {
+        h += '<hr class="section-divider">';
+        h += '<div>';
+        h += '<div class="section-title">How to Test</div>';
+        h += '<ul class="checklist">';
+        for (const item of t.howToTest) h += '<li>' + esc(item) + '</li>';
+        h += '</ul>';
+        h += '</div>';
       }
 
-      h += '</div></div>';
+      // Agent Log - collapsed by default
+      if (t.agentLog) {
+        h += '<hr class="section-divider">';
+        h += '<div>';
+        h += '<div class="collapsible-header" onclick="toggleCollapsible(this)">';
+        h += '<span class="toggle-icon">\u25B6</span>';
+        h += '<div class="section-title">Agent Log</div>';
+        h += '</div>';
+        h += '<div class="collapsible-body">';
+        h += '<div class="agent-log">' + esc(t.agentLog) + '</div>';
+        h += '</div>';
+        h += '</div>';
+      }
+
+      // Live Output - collapsed by default, only if tmux session active
+      if (live) {
+        const tid = 'tmux-' + t.task;
+        h += '<hr class="section-divider">';
+        h += '<div>';
+        h += '<div class="collapsible-header" onclick="toggleCollapsible(this)">';
+        h += '<span class="toggle-icon">\u25B6</span>';
+        h += '<div class="section-title">Live Output</div>';
+        h += '<div class="live-dot"></div>';
+        h += '</div>';
+        h += '<div class="collapsible-body">';
+        h += '<div class="tmux-section">';
+        h += '<div class="tmux-header"><div class="live-dot"></div> ' + esc(live) + '</div>';
+        h += '<div class="tmux-output" id="' + tid + '">Connecting...</div>';
+        h += '</div>';
+        h += '</div>';
+        h += '</div>';
+      }
+
+      // Screenshots row
+      if (hasScreenshots) {
+        h += '<hr class="section-divider">';
+        h += '<div class="screenshots-row">';
+        if (hasApp) {
+          h += '<div class="screenshot-wrap">';
+          h += '<span class="screenshot-badge screenshot-badge-app">App</span>';
+          h += '<div class="screenshot-thumb" onclick="showScreenshot(\'/screenshots/' + enc + '\')">';
+          h += '<img src="/screenshots/' + enc + '" alt="Screenshot" loading="lazy">';
+          h += '</div></div>';
+        }
+        if (hasFigma) {
+          h += '<div class="screenshot-wrap">';
+          h += '<span class="screenshot-badge screenshot-badge-figma">Figma</span>';
+          h += '<div class="screenshot-thumb" onclick="showScreenshot(\'/figma-screenshots/' + enc + '\')">';
+          h += '<img src="/figma-screenshots/' + enc + '" alt="Figma" loading="lazy">';
+          h += '</div></div>';
+        }
+        h += '</div>';
+      }
+
+      h += '</div>'; // end card-body
+
+      // Timestamp footer
+      if (t.completedAt) {
+        h += '<div class="card-footer">';
+        h += '<div class="timestamp">Completed ' + new Date(t.completedAt).toLocaleString() + '</div>';
+        h += '</div>';
+      }
+
+      h += '</div>'; // end card
       return { html: h, live: live, task: t.task };
     }
 
