@@ -548,7 +548,7 @@
           fetch('/api/tmux-sessions')
         ]);
         const tasks = await tr.json();
-        const sessions = await sr.json();
+        const sessions = sr.ok ? await sr.json() : [];
         const dash = document.getElementById('dashboard');
 
         if (!tasks.length) {
