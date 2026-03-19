@@ -1,0 +1,12 @@
+{
+  "name": "tasks-dashboard",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "bun run server.ts",
+    "dev": "bun --watch run server.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}

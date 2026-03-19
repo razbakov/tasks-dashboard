@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tasks Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, monospace;
+      background: #0d0d0d;
+      color: #e0e0e0;
+      min-height: 100vh;
+    }
+    header {
+      background: #1a1a1a;
+      border-bottom: 2px solid #c92128;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    header h1 {
+      font-size: 20px;
+      font-weight: 600;
+      color: #fff;
+    }
+    header h1 span { color: #c92128; }
+    .refresh-info {
+      font-size: 12px;
+      color: #666;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+      gap: 16px;
+      padding: 24px;
+    }
+    .card {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      padding: 20px;
+      transition: border-color 0.2s;
+    }
+    .card:hover { border-color: #c92128; }
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .task-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+    }
+    .branch {
+      font-size: 12px;
+      color: #888;
+      font-family: monospace;
+      margin-top: 2px;
+    }
+    .badges {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+    .badge-done { background: #1a3a1a; color: #4ade80; }
+    .badge-running { background: #3a3a1a; color: #facc15; }
+    .badge-failed { background: #3a1a1a; color: #f87171; }
+    .badge-pending { background: #1a1a2a; color: #94a3b8; }
+    .badge-server-up { background: #1a3a1a; color: #4ade80; }
+    .badge-server-down { background: #3a1a1a; color: #f87171; }
+    .badge-server-off { background: #1a1a1a; color: #555; }
+    .summary {
+      font-size: 13px;
+      color: #aaa;
+      line-height: 1.5;
+      margin-bottom: 12px;
+      white-space: pre-line;
+    }
+    .section-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      color: #666;
+      letter-spacing: 0.5px;
+      margin-top: 12px;
+      margin-bottom: 4px;
+    }
+    .url-link {
+      color: #c92128;
+      text-decoration: none;
+      font-size: 13px;
+      font-family: monospace;
+    }
+    .url-link:hover { text-decoration: underline; }
+    .checklist {
+      list-style: none;
+      padding: 0;
+      font-size: 13px;
+    }
+    .checklist li {
+      padding: 2px 0;
+      color: #aaa;
+    }
+    .checklist li::before {
+      content: "\u25A1 ";
+      color: #c92128;
+    }
+    .log-lines {
+      background: #111;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-family: monospace;
+      font-size: 11px;
+      color: #888;
+      line-height: 1.6;
+      overflow-x: auto;
+      margin-top: 4px;
+    }
+    .screenshot-thumb {
+      margin-top: 8px;
+      cursor: pointer;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #2a2a2a;
+    }
+    .screenshot-thumb img {
+      width: 100%;
+      display: block;
+    }
+    .completed-at {
+      font-size: 11px;
+      color: #555;
+      margin-top: 12px;
+    }
+    details {
+      margin-top: 8px;
+    }
+    details summary {
+      font-size: 12px;
+      color: #888;
+      cursor: pointer;
+      user-select: none;
+    }
+    details summary:hover { color: #c92128; }
+    details .original-task {
+      font-size: 13px;
+      color: #999;
+      margin-top: 6px;
+      padding: 8px;
+      background: #111;
+      border-radius: 6px;
+      white-space: pre-wrap;
+    }
+    .overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.9);
+      z-index: 100;
+      cursor: zoom-out;
+      align-items: center;
+      justify-content: center;
+    }
+    .overlay.active { display: flex; }
+    .overlay img {
+      max-width: 95vw;
+      max-height: 95vh;
+      border-radius: 8px;
+    }
+    .empty {
+      text-align: center;
+      padding: 60px 24px;
+      color: #555;
+      font-size: 16px;
+    }
+    @media (max-width: 480px) {
+      .grid {
+        grid-template-columns: 1fr;
+        padding: 12px;
+        gap: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1><span>Tasks</span> Dashboard</h1>
+    <div class="refresh-info">Auto-refreshes every 5s</div>
+  </header>
+  <div class="grid" id="grid"></div>
+  <div class="overlay" id="overlay" onclick="this.classList.remove('active')">
+    <img id="overlay-img" src="" alt="Screenshot">
+  </div>
+
+  <script>
+    const STATUS_ICONS = {
+      done: '&#x2705;',
+      running: '&#x1F7E1;',
+      failed: '&#x274C;',
+      pending: '&#x23F3;'
+    };
+    const STATUS_LABELS = {
+      done: 'Done',
+      running: 'Running',
+      failed: 'Failed',
+      pending: 'Pending'
+    };
+
+    function statusBadge(status) {
+      const s = (status || 'pending').toLowerCase();
+      const cls = `badge badge-${s === 'done' ? 'done' : s === 'running' ? 'running' : s === 'failed' ? 'failed' : 'pending'}`;
+      return `<span class="${cls}">${STATUS_ICONS[s] || STATUS_ICONS.pending} ${STATUS_LABELS[s] || s}</span>`;
+    }
+
+    function serverBadge(devPort, devServerStatus) {
+      if (!devPort) return `<span class="badge badge-server-off">&#x26AA; No port</span>`;
+      if (devServerStatus && devServerStatus >= 200 && devServerStatus < 400) {
+        return `<span class="badge badge-server-up">&#x1F7E2; ${devServerStatus}</span>`;
+      }
+      if (devServerStatus) {
+        return `<span class="badge badge-server-down">&#x1F534; ${devServerStatus}</span>`;
+      }
+      return `<span class="badge badge-server-down">&#x1F534; offline</span>`;
+    }
+
+    function escapeHtml(str) {
+      const div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+
+    function renderTask(t) {
+      let html = `<div class="card">`;
+      html += `<div class="card-header">`;
+      html += `<div><div class="task-name">${escapeHtml(t.task)}</div>`;
+      if (t.branch) html += `<div class="branch">${escapeHtml(t.branch)}</div>`;
+      html += `</div>`;
+      html += `<div class="badges">${statusBadge(t.status)}${serverBadge(t.devPort, t.devServerStatus)}</div>`;
+      html += `</div>`;
+
+      if (t.url) {
+        html += `<a class="url-link" href="${escapeHtml(t.url)}" target="_blank">${escapeHtml(t.url)}</a>`;
+      }
+
+      if (t.summary) {
+        html += `<div class="section-label">Summary</div>`;
+        html += `<div class="summary">${escapeHtml(t.summary)}</div>`;
+      }
+
+      if (t.originalTask) {
+        html += `<details><summary>Original Task</summary>`;
+        html += `<div class="original-task">${escapeHtml(t.originalTask)}</div></details>`;
+      }
+
+      if (t.howToTest && t.howToTest.length) {
+        html += `<div class="section-label">How to Test</div>`;
+        html += `<ul class="checklist">`;
+        t.howToTest.forEach(item => {
+          html += `<li>${escapeHtml(item)}</li>`;
+        });
+        html += `</ul>`;
+      }
+
+      if (t.screenshot) {
+        html += `<div class="screenshot-thumb" onclick="showScreenshot('${escapeHtml(t.task)}')">`;
+        html += `<img src="/screenshots/${encodeURIComponent(t.task)}" alt="Screenshot" loading="lazy">`;
+        html += `</div>`;
+      }
+
+      if (t.agentLogTail && t.agentLogTail.length) {
+        html += `<div class="section-label">Agent Log (last lines)</div>`;
+        html += `<div class="log-lines">${t.agentLogTail.slice(-3).map(l => escapeHtml(l)).join('\n')}</div>`;
+      }
+
+      if (t.completedAt) {
+        const d = new Date(t.completedAt);
+        html += `<div class="completed-at">Completed: ${d.toLocaleString()}</div>`;
+      }
+
+      html += `</div>`;
+      return html;
+    }
+
+    function showScreenshot(task) {
+      const overlay = document.getElementById('overlay');
+      const img = document.getElementById('overlay-img');
+      img.src = `/screenshots/${encodeURIComponent(task)}`;
+      overlay.classList.add('active');
+    }
+
+    async function refresh() {
+      try {
+        const res = await fetch('/api/tasks');
+        const tasks = await res.json();
+        const grid = document.getElementById('grid');
+        if (tasks.length === 0) {
+          grid.innerHTML = '<div class="empty">No tasks found in ~/Tasks/</div>';
+          return;
+        }
+        grid.innerHTML = tasks.map(renderTask).join('');
+      } catch (err) {
+        console.error('Failed to refresh:', err);
+      }
+    }
+
+    refresh();
+    setInterval(refresh, 5000);
+  </script>
+</body>
+</html>
