@@ -775,6 +775,18 @@
       border-color: #dc2626;
     }
 
+    .archived-toggle {
+      padding: 10px 0;
+      font-size: 13px;
+      font-weight: 500;
+      color: #999;
+      cursor: pointer;
+      user-select: none;
+      margin-top: 8px;
+    }
+
+    .archived-toggle:hover { color: #666; }
+
     /* Agent log styled lines */
     .agent-log { white-space: normal; }
     .log-line { padding: 1px 0; white-space: pre-wrap; word-break: break-word; }
@@ -809,6 +821,7 @@
     let activeFilter = null; // null = all projects
     let refreshTimer = null;
     let formOpen = false;
+    const archivedOpen = new Set();
 
     function showToast(msg, isError) {
       const el = document.getElementById('toast');
@@ -941,6 +954,74 @@
       resumeAutoRefresh();
     }
 
+    async function mergeTask(task, btn) {
+      if (!confirm('Merge branch for ' + task + '?')) return;
+      btn.disabled = true;
+      btn.textContent = 'Merging...';
+      try {
+        const res = await fetch('/api/tasks/' + encodeURIComponent(task) + '/merge', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Merged \u2705');
+        } else {
+          showToast(data.error || 'Merge failed', true);
+        }
+      } catch (err) {
+        showToast('Merge error: ' + err.message, true);
+      }
+      btn.disabled = false;
+      btn.textContent = '\u2935 Merge';
+      refresh();
+    }
+
+    async function archiveTask(task, btn) {
+      btn.disabled = true;
+      btn.textContent = 'Archiving...';
+      try {
+        const res = await fetch('/api/tasks/' + encodeURIComponent(task), {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'archived' })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Archived \u2705');
+        } else {
+          showToast('Archive failed', true);
+        }
+      } catch (err) {
+        showToast('Archive error: ' + err.message, true);
+      }
+      refresh();
+    }
+
+    async function deleteWorktree(task, btn) {
+      if (!confirm('Delete worktree for ' + task + '? This cannot be undone.')) return;
+      btn.disabled = true;
+      btn.textContent = 'Deleting...';
+      try {
+        const res = await fetch('/api/tasks/' + encodeURIComponent(task) + '/delete-worktree', { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          showToast('Worktree deleted \u2705');
+        } else {
+          showToast(data.error || 'Delete failed', true);
+        }
+      } catch (err) {
+        showToast('Delete error: ' + err.message, true);
+      }
+      refresh();
+    }
+
+    function toggleArchived(project) {
+      if (archivedOpen.has(project)) {
+        archivedOpen.delete(project);
+      } else {
+        archivedOpen.add(project);
+      }
+      refresh();
+    }
+
     function renderSuggestionRow(project, s, showActions) {
       let h = '<div class="suggestion-row' + (s.status === 'done' ? ' s-done' : s.status === 'rejected' ? ' s-rejected' : '') + '">';
       if (s.status === 'done') {
@@ -1048,7 +1129,7 @@
       sh += '<span class="sidebar-item-name">All Projects</span>';
       sh += '</li>';
       for (const p of sorted) {
-        const taskCount = (groups[p] || []).length;
+        const taskCount = (groups[p] || []).filter(t => (t.status || '').toLowerCase() !== 'archived').length;
         const sugKey = p.toLowerCase();
         const pendingSugs = (suggestions[sugKey] || []).filter(s => s.status === 'pending').length;
         const isActive = activeFilter === p;
@@ -1210,11 +1291,14 @@
       }
 
       // Action buttons for completed tasks
-      if ((t.status || '').toLowerCase() === 'done') {
+      const taskStatus = (t.status || '').toLowerCase();
+      if (taskStatus === 'done' || taskStatus === 'completed') {
         h += '<div class="card-actions">';
-        h += '<button class="action-btn" onclick="showToast(\'Merge Branch: coming soon\')">Merge Branch</button>';
-        h += '<button class="action-btn" onclick="showToast(\'Archive: coming soon\')">Archive</button>';
-        h += '<button class="action-btn action-btn-danger" onclick="showToast(\'Delete Worktree: coming soon\')">Delete Worktree</button>';
+        if (t.branch && t.branch !== 'n/a' && t.branch !== 'main') {
+          h += '<button class="action-btn" onclick="mergeTask(\'' + esc(t.task) + '\', this)">\u2935 Merge</button>';
+        }
+        h += '<button class="action-btn" onclick="archiveTask(\'' + esc(t.task) + '\', this)">\uD83D\uDCE6 Archive</button>';
+        h += '<button class="action-btn action-btn-danger" onclick="deleteWorktree(\'' + esc(t.task) + '\', this)">\uD83D\uDDD1 Delete Worktree</button>';
         h += '</div>';
       }
 
@@ -1305,7 +1389,9 @@
         let html = '';
 
         for (const project of visibleProjects) {
-          const projectTasks = groups[project] || [];
+          const allProjectTasks = groups[project] || [];
+          const projectTasks = allProjectTasks.filter(t => (t.status || '').toLowerCase() !== 'archived');
+          const archivedTasks = allProjectTasks.filter(t => (t.status || '').toLowerCase() === 'archived');
           html += '<div class="project-group" id="project-' + esc(project) + '">';
           html += '<div class="project-header">' + esc(project) + '</div>';
           const projKey = project.toLowerCase();
@@ -1320,6 +1406,22 @@
               if (r.live) needed.add(r.live);
             }
             html += '</div>';
+          }
+          if (archivedTasks.length) {
+            const isOpen = archivedOpen.has(project);
+            html += '<div class="archived-toggle" onclick="toggleArchived(\'' + esc(project) + '\')">';
+            html += (isOpen ? '\u25BC Hide' : '\u25B6 Show') + ' archived (' + archivedTasks.length + ')';
+            html += '</div>';
+            if (isOpen) {
+              html += '<div class="task-list">';
+              for (const t of archivedTasks) {
+                const r = renderCard(t, sessions);
+                html += r.html;
+                results.push(r);
+                if (r.live) needed.add(r.live);
+              }
+              html += '</div>';
+            }
           }
           html += '</div>';
         }

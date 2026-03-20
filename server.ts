@@ -75,6 +75,12 @@ function truncateStr(s: string, maxLen: number): string {
   return s.length <= maxLen ? s : s.substring(0, maxLen) + "...";
 }
 
+function deriveProjectDir(taskName: string): string {
+  if (taskName.startsWith("tasks-dashboard")) return "tasks-dashboard";
+  const i = taskName.indexOf("-");
+  return i > 0 ? taskName.substring(0, i) : taskName;
+}
+
 function toolInputSummary(
   name: string,
   input: Record<string, unknown>
@@ -551,6 +557,136 @@ read
         return Response.json(dirs);
       } catch {
         return Response.json([]);
+      }
+    }
+
+    // PATCH /api/tasks/:task - update task status
+    if (
+      req.method === "PATCH" &&
+      url.pathname.match(/^\/api\/tasks\/[^/]+$/)
+    ) {
+      const taskName = decodeURIComponent(
+        url.pathname.replace("/api/tasks/", "")
+      );
+      const taskDir = join(TASKS_DIR, taskName);
+      if (!(await fileExists(taskDir))) {
+        return new Response("Task not found", { status: 404 });
+      }
+      const body = (await req.json()) as { status?: string };
+      if (!body.status) return new Response("Missing status", { status: 400 });
+      const taskJsonPath = join(taskDir, "task.json");
+      let taskData: Record<string, unknown> = {};
+      const existing = await readFileSafe(taskJsonPath);
+      if (existing) {
+        try {
+          taskData = JSON.parse(existing);
+        } catch {}
+      }
+      taskData.status = body.status;
+      await writeFile(taskJsonPath, JSON.stringify(taskData, null, 2));
+      return Response.json({ success: true });
+    }
+
+    // POST /api/tasks/:task/merge
+    if (
+      req.method === "POST" &&
+      url.pathname.match(/^\/api\/tasks\/[^/]+\/merge$/)
+    ) {
+      const match = url.pathname.match(/^\/api\/tasks\/(.+)\/merge$/);
+      const taskName = decodeURIComponent(match![1]);
+      try {
+        const taskDir = join(TASKS_DIR, taskName);
+        const taskJsonStr = await readFileSafe(join(taskDir, "task.json"));
+        if (!taskJsonStr)
+          return Response.json(
+            { success: false, error: "No task.json found" },
+            { status: 404 }
+          );
+        const taskData = JSON.parse(taskJsonStr);
+        const branch = taskData.branch;
+        if (!branch || branch === "n/a" || branch === "main") {
+          return Response.json(
+            { success: false, error: "No mergeable branch" },
+            { status: 400 }
+          );
+        }
+        const projectPath = join(
+          homedir(),
+          "Projects",
+          deriveProjectDir(taskName)
+        );
+        const output = await runCommand("git", [
+          "-C",
+          projectPath,
+          "merge",
+          "--no-ff",
+          branch,
+        ]);
+        return Response.json({ success: true, output: output.trim() });
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        return Response.json(
+          { success: false, error: message },
+          { status: 500 }
+        );
+      }
+    }
+
+    // POST /api/tasks/:task/delete-worktree
+    if (
+      req.method === "POST" &&
+      url.pathname.match(/^\/api\/tasks\/[^/]+\/delete-worktree$/)
+    ) {
+      const match = url.pathname.match(
+        /^\/api\/tasks\/(.+)\/delete-worktree$/
+      );
+      const taskName = decodeURIComponent(match![1]);
+      try {
+        const taskDir = join(TASKS_DIR, taskName);
+        const projectPath = join(
+          homedir(),
+          "Projects",
+          deriveProjectDir(taskName)
+        );
+
+        // Update task.json status to archived before deletion
+        const taskJsonPath = join(taskDir, "task.json");
+        let taskData: Record<string, unknown> = {};
+        const existing = await readFileSafe(taskJsonPath);
+        if (existing) {
+          try {
+            taskData = JSON.parse(existing);
+          } catch {}
+        }
+        taskData.status = "archived";
+        await writeFile(taskJsonPath, JSON.stringify(taskData, null, 2));
+
+        // Remove worktree via git
+        try {
+          await runCommand("git", [
+            "-C",
+            projectPath,
+            "worktree",
+            "remove",
+            taskDir,
+            "--force",
+          ]);
+        } catch {
+          // Worktree might not be registered with git, continue to rm -rf
+        }
+
+        // Remove directory if still exists
+        if (existsSync(taskDir)) {
+          await runCommand("rm", ["-rf", taskDir]);
+        }
+
+        return Response.json({ success: true });
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        return Response.json(
+          { success: false, error: message },
+          { status: 500 }
+        );
       }
     }
 
