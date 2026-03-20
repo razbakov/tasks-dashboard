@@ -6,7 +6,8 @@ import { existsSync } from "fs";
 
 const TASKS_DIR = join(homedir(), "Tasks");
 const SUGGESTIONS_FILE = join(TASKS_DIR, "suggestions.json");
-const PORT = 4000;
+const PORT = parseInt(process.env.PORT || Bun.argv.find(a => a.startsWith('--port='))?.split('=')[1] || '4000');
+const HOST = process.env.HOST || Bun.argv.find(a => a.startsWith('--host='))?.split('=')[1] || '0.0.0.0';
 
 interface TaskInfo {
   task: string;
@@ -361,7 +362,7 @@ async function writeSuggestions(data: SuggestionsData): Promise<void> {
 
 const server = Bun.serve({
   port: PORT,
-  hostname: '0.0.0.0',
+  hostname: HOST,
   async fetch(req) {
     const url = new URL(req.url);
 

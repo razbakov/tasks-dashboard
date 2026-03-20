@@ -2,8 +2,8 @@
   "name": "tasks-dashboard",
   "version": "1.0.0",
   "scripts": {
-    "start": "bun run server.ts",
-    "dev": "bun --watch run server.ts"
+    "start": "bun run server.ts --host=0.0.0.0",
+    "dev": "bun --watch run server.ts --host=0.0.0.0"
   },
   "dependencies": {},
   "devDependencies": {
