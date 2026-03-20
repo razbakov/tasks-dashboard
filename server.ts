@@ -1,6 +1,6 @@
 import { readdir, readFile, writeFile, stat, mkdir } from "fs/promises";
 import { join } from "path";
-import { homedir } from "os";
+import { homedir, networkInterfaces } from "os";
 import { spawn } from "child_process";
 import { existsSync } from "fs";
 
@@ -361,6 +361,7 @@ async function writeSuggestions(data: SuggestionsData): Promise<void> {
 
 const server = Bun.serve({
   port: PORT,
+  hostname: '0.0.0.0',
   async fetch(req) {
     const url = new URL(req.url);
 
@@ -563,4 +564,7 @@ read
   },
 });
 
+const nets = networkInterfaces();
+const localIP = Object.values(nets).flat().find(i => i && i.family === 'IPv4' && !i.internal)?.address ?? 'localhost';
 console.log(`Tasks Dashboard running at http://localhost:${PORT}`);
+console.log(`  Network: http://${localIP}:${PORT}`);
