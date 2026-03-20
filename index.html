@@ -533,7 +533,34 @@
     }
 
     .suggestion-row:last-child { border-bottom: none; }
-    .suggestion-row.rejected { opacity: 0.35; }
+
+    .suggestion-row.s-done .suggestion-title {
+      color: #059669;
+    }
+    .suggestion-row.s-done {
+      opacity: 0.6;
+    }
+    .suggestion-row.s-rejected .suggestion-title {
+      color: #999;
+      text-decoration: line-through;
+    }
+    .suggestion-row.s-rejected {
+      opacity: 0.45;
+    }
+
+    .completed-suggestions-toggle {
+      display: block;
+      padding: 8px 20px;
+      font-size: 13px;
+      font-weight: 500;
+      color: #999;
+      cursor: pointer;
+      user-select: none;
+      border-top: 1px solid #f0f0f0;
+    }
+    .completed-suggestions-toggle:hover { color: #666; }
+    .completed-suggestions-body { display: none; }
+    .completed-suggestions-body.open { display: block; }
 
     .priority-badge {
       font-size: 11px;
@@ -914,36 +941,63 @@
       resumeAutoRefresh();
     }
 
+    function renderSuggestionRow(project, s, showActions) {
+      let h = '<div class="suggestion-row' + (s.status === 'done' ? ' s-done' : s.status === 'rejected' ? ' s-rejected' : '') + '">';
+      if (s.status === 'done') {
+        h += '<span class="priority-badge" style="background:#ecfdf5;color:#059669">done</span>';
+      } else if (s.status === 'rejected') {
+        h += '<span class="priority-badge" style="background:#f4f4f5;color:#a1a1aa">rejected</span>';
+      } else {
+        h += '<span class="priority-badge priority-' + esc(s.priority) + '">' + esc(s.priority) + '</span>';
+      }
+      h += '<div class="suggestion-content">';
+      h += '<div class="suggestion-title">' + esc(s.title) + '</div>';
+      if (s.description) h += '<div class="suggestion-desc">' + esc(s.description) + '</div>';
+      h += '</div>';
+      if (showActions) {
+        if (s.status === 'approved') {
+          h += '<div class="suggestion-spawning">Running</div>';
+        } else if (s.status === 'pending') {
+          h += '<div class="suggestion-actions">';
+          h += '<button class="btn-approve" onclick="updateSuggestion(\'' + esc(project) + '\',\'' + esc(s.id) + '\',\'approved\',\'' + esc(s.title).replace(/'/g, "\\'") + '\',\'' + esc(s.description).replace(/'/g, "\\'") + '\',this)">Approve</button>';
+          h += '<button class="btn-reject" onclick="updateSuggestion(\'' + esc(project) + '\',\'' + esc(s.id) + '\',\'rejected\')">Reject</button>';
+          h += '</div>';
+        }
+      }
+      h += '</div>';
+      return h;
+    }
+
+    function toggleCompletedSuggestions(el) {
+      const body = el.nextElementSibling;
+      const isOpen = body.classList.toggle('open');
+      el.textContent = (isOpen ? '\u25BC' : '\u25B6') + ' Show completed (' + body.dataset.count + ')';
+    }
+
     function renderSuggestions(project, suggestions) {
       const items = (suggestions || []);
-      const pendingCount = items.filter(s => s.status === 'pending').length;
+      const active = items.filter(s => s.status === 'pending' || s.status === 'approved');
+      const completed = items.filter(s => s.status === 'done' || s.status === 'rejected');
       let h = '<div class="suggestions-panel">';
       h += '<div class="suggestions-header" onclick="toggleSuggestions(this)">';
       h += '<span class="toggle-icon">\u25BC</span>';
-      h += '<div class="section-title">Suggested Tasks (' + items.length + ')</div>';
+      h += '<div class="section-title">Suggested Tasks (' + active.length + ')</div>';
       h += '</div>';
       h += '<div class="suggestions-body">';
-      if (!items.length) {
+      if (!active.length && !completed.length) {
         h += '<div class="suggestions-empty">No suggestions yet</div>';
       } else {
-        for (const s of items) {
-          const cls = s.status === 'rejected' ? ' rejected' : '';
-          h += '<div class="suggestion-row' + cls + '">';
-          h += '<span class="priority-badge priority-' + esc(s.priority) + '">' + esc(s.priority) + '</span>';
-          h += '<div class="suggestion-content">';
-          h += '<div class="suggestion-title">' + esc(s.title) + '</div>';
-          if (s.description) h += '<div class="suggestion-desc">' + esc(s.description) + '</div>';
-          h += '</div>';
-          if (s.status === 'approved') {
-            h += '<div class="suggestion-spawning">Running</div>';
-          } else if (s.status === 'pending') {
-            h += '<div class="suggestion-actions">';
-            h += '<button class="btn-approve" onclick="updateSuggestion(\'' + esc(project) + '\',\'' + esc(s.id) + '\',\'approved\',\'' + esc(s.title).replace(/'/g, "\\'") + '\',\'' + esc(s.description).replace(/'/g, "\\'") + '\',this)">Approve</button>';
-            h += '<button class="btn-reject" onclick="updateSuggestion(\'' + esc(project) + '\',\'' + esc(s.id) + '\',\'rejected\')">Reject</button>';
-            h += '</div>';
-          }
-          h += '</div>';
+        for (const s of active) {
+          h += renderSuggestionRow(project, s, true);
         }
+      }
+      if (completed.length) {
+        h += '<div class="completed-suggestions-toggle" onclick="toggleCompletedSuggestions(this)">\u25B6 Show completed (' + completed.length + ')</div>';
+        h += '<div class="completed-suggestions-body" data-count="' + completed.length + '">';
+        for (const s of completed) {
+          h += renderSuggestionRow(project, s, false);
+        }
+        h += '</div>';
       }
       // Add suggestion button + form
       const formId = 'add-form-' + project.replace(/[^a-z0-9]/gi, '_');
